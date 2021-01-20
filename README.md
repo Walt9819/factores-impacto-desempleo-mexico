@@ -7,9 +7,9 @@ Carpeta con postworks y proyecto del equipo 18 del módulo 2 del curso Santander
   
 |Postwork|Recursos|
 |-|-|
-|Postwork 1|[Archivo](sesion01/postwork.r)|
-|Postwork 2|[Archivo](sesion02/postwork.r)|
-|Postwork 3|[Archivo](sesion03/postwork.r)|
+|Postwork 1|[Archivo](Postworks/Sesion01/Postworks/Sesion1_Postwork.R)|
+|Postwork 2|[Archivo](Postworks/Sesion02/Postworks/Sesion2_Postwork.R)|
+|Postwork 3|[Archivo](Postworks/Sesion03/Postworks/Sesion3_Postwork.R)|
   
 </details>
 
