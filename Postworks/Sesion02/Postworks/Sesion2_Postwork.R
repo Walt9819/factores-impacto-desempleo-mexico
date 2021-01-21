@@ -1,9 +1,10 @@
 # Postwork Sesion 02
 library(dplyr)
-# Cambiar directorio de trabajo haciendo uso de ?setwd
-setwd("C:/Users/BALAMLAPTOP2/Documents/GitHub/data-analysis-santander/Sesion02/Postworks/")
 
-# Importa los datos de soccer de las temporadas 2017/2018, 2018/2019 y 2019/2020 de la primera divisi髇 de la liga espa駉la a R, 
+# Cambiar directorio de trabajo haciendo uso de ?setwd
+setwd("C:/Users/data-analysis-santander/Sesion02/Postworks/")
+
+# Importa los datos de soccer de las temporadas 2017/2018, 2018/2019 y 2019/2020 de la primera divisi贸n de la liga espa帽ola a R, 
 # los datos los puedes encontrar en el siguiente enlace: https://www.football-data.co.uk/spainm.php
 
 u1718 <- "https://www.football-data.co.uk/mmz4281/1718/SP1.csv"
@@ -18,7 +19,7 @@ download.file(url = u1920, destfile = "SP1-1920.csv", mode = "wb")
 
 rawdata <- lapply(list.files(pattern = "*.csv"), read.csv)
 
-# Obten una mejor idea de las caracter韘ticas de los data frames al usar las funciones: str, head, View y summary
+# Obten una mejor idea de las caracter铆sticas de los data frames al usar las funciones: str, head, View y summary
 # Probar con [[1]] hasta [[3]]
 
 str(rawdata[[1]])
@@ -26,15 +27,15 @@ summary(rawdata[[1]])
 head(rawdata[[1]])
 View(rawdata[[1]])
 
-# Con la funci髇 select del paquete dplyr selecciona 鷑icamente las columnas Date, HomeTeam, AwayTeam, FTHG, FTAG y FTR; 
-# esto para cada uno de los data frames. (Hint: tambi閚 puedes usar lapply).
+# Con la funci贸n select del paquete dplyr selecciona 煤nicamente las columnas Date, HomeTeam, AwayTeam, FTHG, FTAG y FTR; 
+# esto para cada uno de los data frames. (Hint: tambi茅n puedes usar lapply).
 
-selecteddata <- lapply(rawdata, select, Date, HomeTeam:FTR)
+selecteddata <- lapply(rawdata, select, Date, HomeTeam:FTR) #Ya que s贸lo el file u1920 tiene la variable "Time"
 
 
-# Aseg鷕ate de que los elementos de las columnas correspondientes de los nuevos data frames sean del mismo tipo (Hint 1: usa as.Date 
-# y mutate para arreglar las fechas). Con ayuda de la funci髇 rbind forma un 鷑ico data frame que contenga las seis columnas mencionadas 
-# en el punto 3 (Hint 2: la funci髇 do.call podr韆 ser utilizada).
+# Aseg煤rate de que los elementos de las columnas correspondientes de los nuevos data frames sean del mismo tipo (Hint 1: usa as.Date 
+# y mutate para arreglar las fechas). Con ayuda de la funci贸n rbind forma un 煤nico data frame que contenga las seis columnas mencionadas 
+# en el punto 3 (Hint 2: la funci贸n do.call podr铆a ser utilizada).
 mutateddata <- lapply(selecteddata, mutate, 
                       Date = as.Date(Date, "%d/%m/%y"),
                       HomeTeam = as.factor(HomeTeam),
