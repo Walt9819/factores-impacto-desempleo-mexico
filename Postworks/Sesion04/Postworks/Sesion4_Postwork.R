@@ -161,9 +161,9 @@ par(mfrow=c(1,1))
 
 # Si dos eventos A y B son estadísticamente independientes, entonces la probabilidad de que ocurran 
 # conjuntamente es igual al producto de sus probabilidades marginales. Por lo tanto, si el cociente de 
-# la probabilidad conjunta sobre el producto de las probabilidad marginales es igual a 1, detona independencia
+# la probabilidad conjunta sobre el producto de las probabilidad marginales es igual a 1, denota independencia
 # de los eventos A y B. 
 
-# Los resultados obtenidos siempre estaban por encima o por debajo de 1, por lo tanto, los goles anotados
-# por el equipo local o el equipo visitante tienen cierto grado de dependencia. 
+# Los resultados obtenidos se encuentran por encima o por debajo de 1, por lo tanto, los goles anotados
+# por el equipo local y el equipo visitante tienen cierto grado de dependencia. 
 
