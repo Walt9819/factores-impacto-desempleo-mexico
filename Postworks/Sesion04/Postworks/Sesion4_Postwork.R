@@ -1,6 +1,8 @@
-# Postwork Sesion 03
+# Postwork Sesion 4
+
+# Pasos previos Sesion 3
 library(ggplot2)
-# Cambiar directorio de trabajo haciendo uso de ?setwd
+# Cambiar directorio de trabajo haciendo uso de setwd
 setwd("C:/Users/BALAMLAPTOP2/Documents/GitHub/data-analysis-santander/Sesion04/Postworks/")
 
 # Actividad 1
@@ -112,7 +114,8 @@ for (i in 1:length(pm.ftag)){
   print(paste("Probabilidad marginal de que el equipo visitante anote ", i-1, " goles es igual a ", pmarg.gv[i]))
 }
 
-# Postwork sesion 4
+# # Sesion 4
+
 # Ahora investigarás la dependencia o independencia del número de goles anotados por el equipo de casa 
 # y el número de goles anotados por el equipo visitante mediante un procedimiento denominado bootstrap, 
 # revisa bibliografía en internet para que tengas nociones de este desarrollo.
@@ -155,3 +158,12 @@ hist(football.boot, col="slateblue1")
 qqnorm(football.boot)
 qqline(football.boot)
 par(mfrow=c(1,1))
+
+# Si dos eventos A y B son estadísticamente independientes, entonces la probabilidad de que ocurran 
+# conjuntamente es igual al producto de sus probabilidades marginales. Por lo tanto, si el cociente de 
+# la probabilidad conjunta sobre el producto de las probabilidad marginales es igual a 1, detona independencia
+# de los eventos A y B. 
+
+# Los resultados obtenidos siempre estaban por encima o por debajo de 1, por lo tanto, los goles anotados
+# por el equipo local o el equipo visitante tienen cierto grado de dependencia. 
+
