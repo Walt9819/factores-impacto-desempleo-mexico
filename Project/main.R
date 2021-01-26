@@ -3,6 +3,8 @@
 ## Load libraries
 suppressWarnings(library(mongolite)) # get data from MongoDB
 suppressWarnings(library(dplyr)) # data manipulation
+require(ISLR)
+require(aod)
 
 #### Lectura de datos ####
 ## Conexión a MongoDB
