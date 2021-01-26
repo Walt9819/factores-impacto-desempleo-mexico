@@ -1,10 +1,18 @@
 ## Main file ##
 
+## Load libraries
+suppressWarnings(library(mongolite)) # get data from MongoDB
+suppressWarnings(library(dplyr)) # data manipulation
+
 #### Lectura de datos ####
 ## Conexión a MongoDB
+covidData.DB <- mongo(db="bedu18", collection="data_covid", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
+logitData.DB <- mongo(db="bedu18", collection="data_logit", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
 
 ## Lectura datos (DENUE, ENOE y COVID)
 # Lectura DENUE y COVID
+allLogitData <- logitData.DB$find('{}')
+allCovidData <- covidData.DB$find('{}')
 
 # Lectura ENOE (opcional)
 
