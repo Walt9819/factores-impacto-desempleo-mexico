@@ -37,9 +37,42 @@ summary(allLogitData)
 sapply(allLogitData, sd)
 xtabs(~eda + clase2, data = allLogitData)
 
+# Análisis exploratorio
+
+names(allLogitData)
+
+str(allLogitData)
+
+head(allLogitData)
+
+summary(allLogitData)
+
+# Omision de variables 
+allLogitData <- na.omit(allLogitData)
+
+allLogitData <- allLogitData[allLogitData$clase2 <= 3 & 
+                               allLogitData$clase2 !=0 & 
+                               allLogitData$eda >= 15 & 
+                               allLogitData$eda <=65 &
+                               allLogitData$niv_ins <=4, ]
+
+summary(allLogitData)
+
+# Varible dicotomica de desempleo 
+
+allLogitData$clase2[allLogitData$clase2 == 1] <- 0 # No desempleados
+allLogitData$clase2[allLogitData$clase2 == 2 | allLogitData$clase2 == 3] <- 1 # Desempleados abiertos
+
+summary(allLogitData)
+
+# Logistic regression
+
 allLogitData$clase2 <- factor(allLogitData$clase2)
-mylogit <- glm(clase2 ~ sex + eda + niv_ins + rama, data = allLogitData, family = "binomial")
+
+mylogit <- glm(clase2 ~ sex + eda + niv_ins + cve_ent + cve_mun, data = allLogitData, family = binomial)
+
 summary(mylogit)
+
 # Call:
 #   glm(formula = clase2 ~ sex + eda + niv_ins + rama, family = "binomial", 
 #       data = allLogitData)
