@@ -191,42 +191,39 @@ summary(DataENOE120)
 
 # Logistic regression
 
-mylogit <- glm(clase2 ~ sex + eda + niv_ins, data = DataENOE120, family = "binomial")
-
-summary(mylogit)
-
-mylogit.dummy <- glm(clase2 ~ sex + eda + niv_ins_1 + niv_ins_2 + niv_ins_3, 
+mylogit.dummy120 <- glm(clase2 ~ sex + eda + niv_ins_1 + niv_ins_2 + niv_ins_3, 
                      data = DataENOE120, family = "binomial")
 
-summary(mylogit.dummy)
+summary(mylogit.dummy120)
 
 # Calculo de probabilidades
 
 attach(DataENOE120)
 
-coef.mylogitd <- coef(mylogit.dummy) # Para acceder a los coeficientes calculados
+coef.mylogitd120 <- coef(mylogit.dummy120) # Para acceder a los coeficientes calculados
 
-prop.niv_ins <- table(niv_ins) 
+prop.niv_ins120 <- table(niv_ins) 
 dim120 <- 195622 # Para sacar proporciones de la variable categorica niv_ins
 
   # Con los valores medios
-round((1/(1+exp(-((coef.mylogitd[1]) + 
-                (coef.mylogitd[2]*mean(sex)) + 
-                (coef.mylogitd[3]*mean(eda)) + 
-                (coef.mylogitd[4]*(prop.niv_ins[3]/dim120)) + 
-                (coef.mylogitd[5]*(prop.niv_ins[3]/dim120)) + 
-                (coef.mylogitd[6]*(prop.niv_ins[4]/dim120)) 
+round((1/(1+exp(-((coef.mylogitd120[1]) + 
+                (coef.mylogitd120[2]*mean(sex)) + 
+                (coef.mylogitd120[3]*mean(eda)) + 
+                (coef.mylogitd120[4]*(prop.niv_ins120[3]/dim120)) + 
+                (coef.mylogitd120[5]*(prop.niv_ins120[3]/dim120)) + 
+                (coef.mylogitd120[6]*(prop.niv_ins120[4]/dim120)) 
                 ) ))), 4)   # Probabilidad de 0.1818
 
-# Con mujer y edad de 23 y primaria completa
+# Con mujer, edad 23 y primaria completa
 
-round((1/(1+exp(-((coef.mylogitd[1]) + 
-                    (coef.mylogitd[2]*1) + 
-                    (coef.mylogitd[3]*23) + 
-                    (coef.mylogitd[4]*(1)) + 
-                    (coef.mylogitd[5]*(0)) + 
-                    (coef.mylogitd[6]*(0)) 
-                    ) ))), 4)
+round((1/(1+exp(-((coef.mylogitd120[1]) + 
+                    (coef.mylogitd120[2]*1) + 
+                    (coef.mylogitd120[3]*23) + 
+                    (coef.mylogitd120[4]*(1)) + 
+                    (coef.mylogitd120[5]*(0)) + 
+                    (coef.mylogitd120[6]*(0)) 
+                    ) ))), 4) # Probabilidad de 0.3209
+
 
 # # SEGUNDO TRIMESTRE 2020
 
@@ -301,7 +298,7 @@ round((1/(1+exp(-((coef.mylogitd220[1]) +
                     (coef.mylogitd220[6]*(prop.niv_ins220[4]/dim220)) 
                     ) ))), 4)   # Probabilidad 0.4490
 
-# Con mujer y edad de 23 y primaria completa
+# Con mujer, edad 23 y primaria completa
 
 round((1/(1+exp(-((coef.mylogitd220[1]) + 
                     (coef.mylogitd220[2]*1) + 
@@ -384,7 +381,7 @@ round((1/(1+exp(-((coef.mylogitd320[1]) +
                       (coef.mylogitd320[6]*(prop.niv_ins320[4]/dim320)) 
                       ) ))), 4)
 
-# Con mujer y edad de 23 y primaria completa
+# Con mujer, edad 23 y primaria completa
 
 round((1/(1+exp(-((coef.mylogitd320[1]) + 
                     (coef.mylogitd320[2]*1) + 
