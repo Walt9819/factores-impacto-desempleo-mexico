@@ -3,7 +3,7 @@
 library(dplyr)
 
 # Cambiar directorio de trabajo haciendo uso de ?setwd
-setwd("C:/Users/data-analysis-santander/Sesion02/Postworks/")
+setwd("C:/Users/data-analysis-santander/Sesion05/Postworks/")
 
 # Importa los datos de soccer de las temporadas 2017/2018, 2018/2019 y 2019/2020 de la primera división de la liga española a R, 
 # los datos los puedes encontrar en el siguiente enlace: https://www.football-data.co.uk/spainm.php
