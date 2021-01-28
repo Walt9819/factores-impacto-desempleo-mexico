@@ -121,6 +121,282 @@ newdata1 <- with(data_rl, data.frame(sex = mean(sex), eda = mean(eda), niv_ins =
 newdata1$rankP <- predict(mylogit, newdata = newdata1, type = "response")
 newdata1
 
+# MODELOS ENOE 2020.1, 2020.2, 2020.3
+
+# Conexión con MongoDB
+
+    # Primer trimestre de 2020
+enoe120Data.DB <- mongo(db="bedu18", collection="data_enoe", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
+
+DataENOE120 <- enoe120Data.DB$find('{}')
+
+    # Segundo trimestre de 2020
+enoe220Data.DB <- mongo(db="bedu18", collection="data_enoe", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
+
+DataENOE220 <- enoe220Data.DB$find('{}')
+
+    # Tercer trimestre de 2020
+enoe320Data.DB <- mongo(db="bedu18", collection="data_enoe", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
+
+DataENOE320 <- enoe320Data.DB$find('{}')
+
+
+# # PRIMER TRIMESTRE 2020
+
+# Características iniciales
+
+names(DataENOE120)
+
+str(DataENOE120)
+
+head(DataENOE120)
+
+summary(DataENOE120)
+
+
+# Omision de variables 
+
+DataENOE120 <- DataENOE120[DataENOE120$clase2 <= 3 & 
+                              DataENOE120$clase2 != 0 & 
+                              DataENOE120$eda >= 15 & 
+                              DataENOE120$eda <= 65 &
+                              DataENOE120$niv_ins <= 4, ]
+
+DataENOE120 <- DataENOE120[DataENOE120$per == 120, ]
+
+summary(DataENOE120)
+
+# Varible dicotomica de desempleo 
+
+DataENOE120$clase2[DataENOE120$clase2 == 1] <- 0 # No desempleados
+
+DataENOE120$clase2[DataENOE120$clase2 == 2 | DataENOE120$clase2 == 3] <- 1 # Desempleados abiertos
+
+# Variable dicotomica sexo
+
+DataENOE120$sex[DataENOE120$sex == 1] <- 0 # Hombre
+
+DataENOE120$sex[DataENOE120$sex == 2] <- 1 # Mujer
+
+
+# Dummies 
+
+library(fastDummies)
+
+DataENOE120$niv_ins <- factor(DataENOE120$niv_ins)
+
+DataENOE120 <- mutate(dummy_cols(DataENOE120, select_columns = "niv_ins"))
+
+summary(DataENOE120)
+
+# Logistic regression
+
+mylogit <- glm(clase2 ~ sex + eda + niv_ins, data = DataENOE120, family = "binomial")
+
+summary(mylogit)
+
+mylogit.dummy <- glm(clase2 ~ sex + eda + niv_ins_1 + niv_ins_2 + niv_ins_3, 
+                     data = DataENOE120, family = "binomial")
+
+summary(mylogit.dummy)
+
+# Calculo de probabilidades
+
+attach(DataENOE120)
+
+coef.mylogitd <- coef(mylogit.dummy) # Para acceder a los coeficientes calculados
+
+prop.niv_ins <- table(niv_ins) 
+dim120 <- 195622 # Para sacar proporciones de la variable categorica niv_ins
+
+  # Con los valores medios
+round((1/(1+exp(-((coef.mylogitd[1]) + 
+                (coef.mylogitd[2]*mean(sex)) + 
+                (coef.mylogitd[3]*mean(eda)) + 
+                (coef.mylogitd[4]*(prop.niv_ins[3]/dim120)) + 
+                (coef.mylogitd[5]*(prop.niv_ins[3]/dim120)) + 
+                (coef.mylogitd[6]*(prop.niv_ins[4]/dim120)) 
+                ) ))), 4)   # Probabilidad de 0.1818
+
+# Con mujer y edad de 23 y primaria completa
+
+round((1/(1+exp(-((coef.mylogitd[1]) + 
+                    (coef.mylogitd[2]*1) + 
+                    (coef.mylogitd[3]*23) + 
+                    (coef.mylogitd[4]*(1)) + 
+                    (coef.mylogitd[5]*(0)) + 
+                    (coef.mylogitd[6]*(0)) 
+                    ) ))), 4)
+
+# # SEGUNDO TRIMESTRE 2020
+
+DataENOE220 <- DataENOE220[DataENOE220$per == 220, ] 
+
+# Características iniciales
+
+names(DataENOE220)
+
+str(DataENOE220)
+
+head(DataENOE220)
+
+summary(DataENOE220)
+
+
+# Omision de variables 
+
+DataENOE220 <- DataENOE220[DataENOE220$clase2 <= 3 & 
+                             DataENOE220$clase2 != 0 & 
+                             DataENOE220$eda >= 15 & 
+                             DataENOE220$eda <= 65 &
+                             DataENOE220$niv_ins <= 4, ]
+
+summary(DataENOE220)
+
+# Varible dicotomica de desempleo 
+
+DataENOE220$clase2[DataENOE220$clase2 == 1] <- 0 # No desempleados
+
+DataENOE220$clase2[DataENOE220$clase2 == 2 | DataENOE220$clase2 == 3] <- 1 # Desempleados abiertos
+
+# Variable dicotomica sexo
+
+DataENOE220$sex[DataENOE220$sex == 1] <- 0 # Hombre
+
+DataENOE220$sex[DataENOE220$sex == 2] <- 1 # Mujer
+
+
+# Dummies 
+
+library(fastDummies)
+
+DataENOE220$niv_ins <- factor(DataENOE220$niv_ins)
+
+DataENOE220 <- mutate(dummy_cols(DataENOE220, select_columns = "niv_ins"))
+
+summary(DataENOE220)
+
+# Logistic regression
+
+mylogit.dummy220 <- glm(clase2 ~ sex + eda + niv_ins_1 + niv_ins_2 + niv_ins_3, 
+                     data = DataENOE220, family = "binomial")
+
+summary(mylogit.dummy220)
+
+# Calculo de probabilidades
+
+attach(DataENOE220)
+
+coef.mylogitd220 <- coef(mylogit.dummy220) # Para acceder a los coeficientes calculados
+
+prop.niv_ins220 <- table(niv_ins) 
+dim220 <- 58878 # Para sacar proporciones de la variable categorica niv_ins
+
+# Con los valores medios
+round((1/(1+exp(-((coef.mylogitd220[1]) + 
+                    (coef.mylogitd220[2]*mean(sex)) + 
+                    (coef.mylogitd220[3]*mean(eda)) + 
+                    (coef.mylogitd220[4]*(prop.niv_ins220[3]/dim220)) + 
+                    (coef.mylogitd220[5]*(prop.niv_ins220[3]/dim220)) + 
+                    (coef.mylogitd220[6]*(prop.niv_ins220[4]/dim220)) 
+                    ) ))), 4)   # Probabilidad 0.4490
+
+# Con mujer y edad de 23 y primaria completa
+
+round((1/(1+exp(-((coef.mylogitd220[1]) + 
+                    (coef.mylogitd220[2]*1) + 
+                    (coef.mylogitd220[3]*23) + 
+                    (coef.mylogitd220[4]*(1)) + 
+                    (coef.mylogitd220[5]*(0)) + 
+                    (coef.mylogitd220[6]*(0)) 
+                    ) ))), 4)   # Probabilidad 0.6863
+
+# # TERCER TRIMESTRE 2020
+
+DataENOE320 <- DataENOE320[DataENOE320$per == 320, ]
+
+# Características iniciales
+
+names(DataENOE320)
+
+str(DataENOE320)
+
+head(DataENOE320)
+
+summary(DataENOE320)
+
+
+# Omision de variables 
+
+DataENOE320 <- DataENOE320[DataENOE320$clase2 <= 3 & 
+                             DataENOE320$clase2 != 0 & 
+                             DataENOE320$eda >= 15 & 
+                             DataENOE320$eda <= 65 &
+                             DataENOE320$niv_ins <= 4, ]
+
+summary(DataENOE320)
+
+# Varible dicotomica de desempleo 
+
+DataENOE320$clase2[DataENOE320$clase2 == 1] <- 0 # No desempleados
+
+DataENOE320$clase2[DataENOE320$clase2 == 2 | DataENOE320$clase2 == 3] <- 1 # Desempleados abiertos
+
+# Variable dicotomica sexo
+
+DataENOE320$sex[DataENOE320$sex == 1] <- 0 # Hombre
+
+DataENOE320$sex[DataENOE320$sex == 2] <- 1 # Mujer
+
+
+# Dummies 
+
+library(fastDummies)
+
+DataENOE320$niv_ins <- factor(DataENOE320$niv_ins)
+
+DataENOE320 <- mutate(dummy_cols(DataENOE320, select_columns = "niv_ins"))
+
+summary(DataENOE320)
+
+# Logistic regression
+
+mylogit.dummy320 <- glm(clase2 ~ sex + eda + niv_ins_1 + niv_ins_2 + niv_ins_3, 
+                        data = DataENOE320, family = "binomial")
+
+summary(mylogit.dummy320)
+
+# Calculo de probabilidades
+
+attach(DataENOE320)
+
+coef.mylogitd320 <- coef(mylogit.dummy320) # Para acceder a los coeficientes calculados
+
+prop.niv_ins320 <- table(niv_ins) 
+dim320 <- 142075 # Para sacar proporciones de la variable categorica niv_ins
+  
+  # Con los valores medios
+round((1/(1+exp(-((coef.mylogitd320[1]) + 
+                      (coef.mylogitd320[2]*mean(sex)) + 
+                      (coef.mylogitd320[3]*mean(eda)) + 
+                      (coef.mylogitd320[4]*(prop.niv_ins320[3]/dim320)) + 
+                      (coef.mylogitd320[5]*(prop.niv_ins320[3]/dim320)) + 
+                      (coef.mylogitd320[6]*(prop.niv_ins320[4]/dim320)) 
+                      ) ))), 4)
+
+# Con mujer y edad de 23 y primaria completa
+
+round((1/(1+exp(-((coef.mylogitd320[1]) + 
+                    (coef.mylogitd320[2]*1) + 
+                    (coef.mylogitd320[3]*23) + 
+                    (coef.mylogitd320[4]*(1)) + 
+                    (coef.mylogitd320[5]*(0)) + 
+                    (coef.mylogitd320[6]*(0)) 
+                    ) ))), 4)
+
+
+# LO QUE FALTA
+
 # Primer trimestre (sin restricciones)
 # Segundo y tercer trimestre (con restricciones por COVID)
 
