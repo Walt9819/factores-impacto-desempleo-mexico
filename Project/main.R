@@ -5,7 +5,131 @@ suppressWarnings(library(mongolite)) # get data from MongoDB
 suppressWarnings(library(dplyr)) # data manipulation
 suppressWarnings(library(aod)) # logistic regression odds
 suppressWarnings(library(ggplot2)) # graphs
+suppressWarnings(library(foreign))
+suppressWarnings(library(rjson))
+suppressWarnings(library(reshape2))
+suppressWarnings(library(tidyr))
+suppressWarnings(library(plotly))
+suppressWarnings(library(zoo))
+
 require(ISLR)
+
+################################# Carga Inicial: Inicio #################################
+## Encuesta Nacional de Ocupación y Empleo (ENOE)
+# Descargar bases de datos para los trimestres disponibles del año 2020 en formato DBF.
+# Disponibles en: https://www.inegi.org.mx/programas/enoe/15ymas/#Microdatos
+# Como primer paso se recomienda extraer todos los conjuntos de datos de los 5 archivos ZIP.
+# Lectura de Datos de sociodemográfico <SDEM>
+
+# Datos de conexión a MongoDB
+url_path = 'mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test'
+
+# Definición de carpeta de trabajo y conexión a base de datos MongoDB
+path <- "C:/Users/BALAMLAPTOP2/Documents/GitHub/factores-impacto-desempleo-mexico/Project"
+setwd(path)
+
+# Lectura de todos los archivos .dbf en la carpeta del proyecto
+rawdata <- lapply(list.files(pattern = "*.dbf", recursive = TRUE), read.dbf)
+
+# Extracción de atributos considerados para el modelo de regresión lógistica y lineal. 
+selecteddata <- lapply(rawdata, select, c("ENT", "MUN", "SEX", "EDA", "NIV_INS", "RAMA", "CLASE2", "PER"))
+
+# Construcción de data frame y cambio de nombres
+data_enoe <- do.call(rbind, selecteddata)
+colnames(data_enoe) <- c("cve_ent", "cve_mun", "sex", "eda", "niv_ins", "rama", "clase2", "per") # Este paso se puede omitir
+
+# Se omiten valores NaN dentro de la base de datos.
+data_enoe <- na.omit(data_enoe)
+
+# Se establece una conexión a MongoDB y se cargan todos los datos en la colección 'data_enoe'
+mongo <- mongo(collection = "data_enoe", db = "bedu18", url = url_path, verbose = TRUE)
+mongo$insert(data_enoe)
+
+## Empleados asegurados en el IMSS (API Data México)
+# Conexión vía API al modelo de datos Data México de la Secretaría de Economía
+
+# Se construye URL de conexión para extraer datos del cubo IMSS con drilldown hasta Municipios y Meses para la métrica Empleados asegurados
+# Solicitud de datos con salida JSON
+url_imss <- "https://dev-api.datamexico.org/tesseract/data.jsonrecords?cube=imss&drilldowns=Municipality%2CMonth&measures=Insured+Employment&parents=false&sparse=false"
+json_imss <- fromJSON(paste(readLines(url_imss, warn=FALSE), collapse=""))
+
+# Antes de aplicar un do.call con metodo rbind se deben anular las listas (unlist) para extraer los datos del JSON
+json_imss <- lapply(json_imss$data, function(x) {
+  x[sapply(x, is.null)] <- NA
+  unlist(x)
+})
+
+# Construcción de dataframe y cambio de nombre a las columnas.
+data_imss <-as.data.frame(do.call("rbind", json_imss))
+colnames(data_imss) <- c("imun", "mun", "idmes", "mes","asegurados")
+
+# Convertir de character a númerico valores sobre asegurados en el IMSS
+data_imss[,5] <- sapply(data_imss[, 5], as.numeric)
+
+# Carga de datos IMSS a MongoDB (Comment: Crear función para subir dataframes a MongoDB, entrada nombre de la colección y dataframe)
+mongo <- mongo(collection = "datamx_imss", db = "bedu18", 
+               url = url_path, 
+               verbose = TRUE)
+mongo$insert(data_imss[,c(1:2,4:5)])
+
+## COVID19 (API Data México)
+# Se construye URL de conexión para extraer datos del cubo gobmx_covid_stats_mun con drilldown 
+# hasta municipios y mes para las métricas Casos diarios, Muertes diarias y hospitalizados diarios 
+# (el agregado aplicado por el cubo OLAP es por defecto SUMA).
+url_covid <- "https://api.datamexico.org/tesseract/cubes/gobmx_covid_stats_mun/aggregate.jsonrecords?drilldowns%5B%5D=Geography.Geography.Municipality&drilldowns%5B%5D=Reported+Date.Time.Month&measures%5B%5D=Daily+Cases&measures%5B%5D=Daily+Deaths&measures%5B%5D=Daily+Hospitalized&parents=false&sparse=false"
+json_covid <- fromJSON(paste(readLines(url_covid, warn=FALSE), collapse=""))
+
+# Antes de aplicar un do.call con metodo rbind se deben anular las listas (unlist) para extraer los datos del JSON
+json_covid <- lapply(json_covid$data, function(x) {
+  x[sapply(x, is.null)] <- NA
+  unlist(x)
+})
+
+# Construcción de dataframe y cambio de nombre a las columnas.
+data_covid <-as.data.frame(do.call("rbind", json_covid))
+colnames(data_covid) <- c("imun", "mun", "idmes", "mes", "casos_diarios", "muertos_diarios", "hospitalizados_diarios")
+
+# Convertir de character a númerico valores 
+data_covid[,5:7] <- sapply(data_covid[, 5:7], as.numeric)
+
+# Carga de datos COVID a MongoDB 
+# (Comment: Crear función para subir dataframes a MongoDB, entrada nombre de la colección y dataframe)
+mongo <- mongo(collection = "datamx_covid", db = "bedu18", url = url_path, verbose = TRUE)
+mongo$insert(data_covid[,c(1:2,4:7)])
+
+
+## Integración de datos para IMSS y COVID por municipio y fecha
+# Para no perder resolución en la calidad de los datos se ejecuta un inner join a la izquierda.
+# Se mantienen los valores sin municipio definido con claves en entidad = 9 y municipio = 999. 
+# (Omitir del análisis en caso de ser requerido aquellos registros con clave del municipio a 999, clave definida desde origen)
+data_imss_covid <- merge(data_imss, 
+                         data_covid, 
+                         by = c("imun", "mes"), all.x = TRUE) 
+
+# Se separa el atributo identificador del mes en anio y mes por convención. Al igual que, el identificador del municipio.
+# Se requiere de esa manera para gráficos y mapas a incorporar.
+data_imss_covid <- data_imss_covid %>% separate(mes, into = c('anio', 'mes'), sep = '-')
+data_imss_covid <- data_imss_covid %>% separate(imun, into = c('cve_ent', 'cve_mun'), sep = -3)
+
+# Se filtra el año 2020
+data_imss_covid <- data_imss_covid[data_imss_covid$anio == '2020', ]
+
+# Se ejecuta un subset para mantener aquellos atributos no repetidos después del merge.
+data_imss_covid <- as.data.frame(subset(data_imss_covid, select=c("cve_ent", "cve_mun", "anio", "mes", "asegurados", "casos_diarios", "muertos_diarios", "hospitalizados_diarios")))
+
+# Se asigna cero a aquellas métricas que no tienen concidencia después del left join.
+# Principalmente para aquellos municipios que empezaron a registrar casos de COVID en mese posteriores
+data_imss_covid[is.na(data_imss_covid)] <- 0
+
+# Convertir de character a númerico valores 
+data_imss_covid[,3:8] <- sapply(data_imss_covid[, 3:8], as.numeric)
+
+# Carga de datos COVID a MongoDB 
+# (Comment: Crear función para subir dataframes a MongoDB, entrada nombre de la colección y dataframe)
+mongo <- mongo(collection = "datamx_imss_covid", db = "bedu18", url = url_path, verbose = TRUE)
+mongo$insert(data_imss_covid)
+
+################################# Carga Inicial: Fin #################################
 
 
 #### Lectura de datos ####
@@ -452,3 +576,20 @@ with(mylogit320, pchisq(null.deviance - deviance, df.null - df.residual, lower.t
 ## Gráficos modelo "logit"
 
 ## Ingresar datos para generar predicción
+
+####  Visualizaciones sobre resultados del modelo y justificar la importancia del proyecto.
+# Empleo en México 2019 - 2020
+# Asignar formato a la fecha del conjunto de datos IMSS
+imssData <- imssData %>% separate(mes, into = c('anio', 'mes'), sep = '-')
+imssData$date_month <-as.Date(as.yearmon(paste(imssData$anio, "/", imssData$mes, sep=""), format="%Y/%m"))
+
+# Agrupado de los datos por el atributo fecha
+data_chart1 <- imssData %>% group_by(date_month) %>% summarise(asegurados = sum(asegurados))
+
+# Visualización del empleo en México y su evolución mensual
+# Se resalta la mayor caída de empleos registrada en México, ocasionada principalmente por la pandemia COVID-19. 
+# Donde la tasa de ocupación entre Febrero y Julio del 2020 cayó % perdiendo mas de X millones de puestos formales como informales.
+
+plot_ly(data = data_chart1, x = ~date_month, y = ~asegurados, mode = 'lines', line = list(color = 'rgb(205, 12, 24)', width = 4)) %>% layout(title = "Empleo en México 2019 - 2020", 
+                                                                                         xaxis = list(title = ""), yaxis = list (title = "Empleados"))
+
