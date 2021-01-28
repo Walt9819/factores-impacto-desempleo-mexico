@@ -212,7 +212,7 @@ round((1/(1+exp(-((coef.mylogitd120[1]) +
                 (coef.mylogitd120[4]*(prop.niv_ins120[3]/dim120)) + 
                 (coef.mylogitd120[5]*(prop.niv_ins120[3]/dim120)) + 
                 (coef.mylogitd120[6]*(prop.niv_ins120[4]/dim120)) 
-                ) ))), 4)   # Probabilidad de 0.1818
+                ) ))), 4)   # Probabilidad de 0.1267
 
 # Con mujer, edad 23 y primaria completa
 
