@@ -3,8 +3,10 @@
 ## Load libraries
 suppressWarnings(library(mongolite)) # get data from MongoDB
 suppressWarnings(library(dplyr)) # data manipulation
+suppressWarnings(library(aod)) # logistic regression odds
+suppressWarnings(library(ggplot2)) # graphs
 require(ISLR)
-require(aod)
+
 
 #### Lectura de datos ####
 ## Conexión a MongoDB
@@ -125,23 +127,15 @@ newdata1
 
 # Conexión con MongoDB
 
-    # Primer trimestre de 2020
-enoe120Data.DB <- mongo(db="bedu18", collection="data_enoe", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
+ENOEData.DB <- mongo(db="bedu18", collection="data_enoe", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
 
-DataENOE120 <- enoe120Data.DB$find('{}')
+AllDataENOE <- ENOEData.DB$find('{}')
 
-    # Segundo trimestre de 2020
-enoe220Data.DB <- mongo(db="bedu18", collection="data_enoe", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
-
-DataENOE220 <- enoe220Data.DB$find('{}')
-
-    # Tercer trimestre de 2020
-enoe320Data.DB <- mongo(db="bedu18", collection="data_enoe", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
-
-DataENOE320 <- enoe320Data.DB$find('{}')
 
 
 # # PRIMER TRIMESTRE 2020
+
+DataENOE120 <- AllDataENOE[AllDataENOE$per == 120, ]
 
 # Características iniciales
 
@@ -157,12 +151,10 @@ summary(DataENOE120)
 # Omision de variables 
 
 DataENOE120 <- DataENOE120[DataENOE120$clase2 <= 3 & 
-                              DataENOE120$clase2 != 0 & 
-                              DataENOE120$eda >= 15 & 
-                              DataENOE120$eda <= 65 &
-                              DataENOE120$niv_ins <= 4, ]
-
-DataENOE120 <- DataENOE120[DataENOE120$per == 120, ]
+                             DataENOE120$clase2 != 0 & 
+                             DataENOE120$eda >= 15 & 
+                             DataENOE120$eda <= 65 &
+                             DataENOE120$niv_ins <= 4, ]
 
 summary(DataENOE120)
 
@@ -179,55 +171,71 @@ DataENOE120$sex[DataENOE120$sex == 1] <- 0 # Hombre
 DataENOE120$sex[DataENOE120$sex == 2] <- 1 # Mujer
 
 
-# Dummies 
-
-library(fastDummies)
+# Variable categórica
 
 DataENOE120$niv_ins <- factor(DataENOE120$niv_ins)
 
-DataENOE120 <- mutate(dummy_cols(DataENOE120, select_columns = "niv_ins"))
-
-summary(DataENOE120)
 
 # Logistic regression
 
-mylogit.dummy120 <- glm(clase2 ~ sex + eda + niv_ins_1 + niv_ins_2 + niv_ins_3, 
-                     data = DataENOE120, family = "binomial")
+mylogit120 <- glm(clase2 ~ sex + eda + niv_ins, data = DataENOE120, family = "binomial")
 
-summary(mylogit.dummy120)
+summary(mylogit120)
+
+# Prueba de Wald: Para saber el efecto de la variable categórica
+
+wald.test(b = coef(mylogit120), Sigma = vcov(mylogit120), Terms = 4:6)
+
+    # H0: El efecto de la variable categórica no es estadísticamente significativo
+    # Resultado: Pvalue< 0.05, por tanto, se rechaza H0.
+
+# Radios de probabilidad e intervalos de confianza al 95%
+
+exp(cbind(OR = coef(mylogit120), confint(mylogit120)))
 
 # Calculo de probabilidades
 
-attach(DataENOE120)
+probmean120 <- with(DataENOE120, data.frame(sex = mean(sex), eda = mean(eda), niv_ins = factor(1:4)))
 
-coef.mylogitd120 <- coef(mylogit.dummy120) # Para acceder a los coeficientes calculados
+probmean120$niv_insP <- predict(mylogit120, newdata = probmean120, type = "response")
 
-prop.niv_ins120 <- table(niv_ins) 
-dim120 <- 195622 # Para sacar proporciones de la variable categorica niv_ins
+probmean120
 
-  # Con los valores medios
-round((1/(1+exp(-((coef.mylogitd120[1]) + 
-                (coef.mylogitd120[2]*mean(sex)) + 
-                (coef.mylogitd120[3]*mean(eda)) + 
-                (coef.mylogitd120[4]*(prop.niv_ins120[3]/dim120)) + 
-                (coef.mylogitd120[5]*(prop.niv_ins120[3]/dim120)) + 
-                (coef.mylogitd120[6]*(prop.niv_ins120[4]/dim120)) 
-                ) ))), 4)   # Probabilidad de 0.1267
+mean(probmean120$niv_insP)
+    # Probabilidad de estar desempleado a nivel nacional: 0.1117514
 
-# Con mujer, edad 23 y primaria completa
+probdec120 <- with(DataENOE120, data.frame(sex = mean(sex), eda = rep(seq(from = 15, to = 65, length.out = 10),
+                                              4), niv_ins = factor(rep(1:4, each = 10))))
 
-round((1/(1+exp(-((coef.mylogitd120[1]) + 
-                    (coef.mylogitd120[2]*1) + 
-                    (coef.mylogitd120[3]*23) + 
-                    (coef.mylogitd120[4]*(1)) + 
-                    (coef.mylogitd120[5]*(0)) + 
-                    (coef.mylogitd120[6]*(0)) 
-                    ) ))), 4) # Probabilidad de 0.3209
+probdec120n <- cbind(probdec120, predict(mylogit120, newdata = probdec120, type = "link",
+                                    se = TRUE))
+probdec120n<- within(probdec120n, {
+  PredictedProb <- plogis(fit)
+  LL <- plogis(fit - (1.96 * se.fit))
+  UL <- plogis(fit + (1.96 * se.fit))
+})
+
+probdec120n
+
+# Gráfica de probabilidades 
+
+ggplot(probdec120n, aes(x = eda, y = PredictedProb))+ ggtitle("Desempleo abierto 2020.1") + geom_ribbon(aes(ymin = LL, 
+      ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1)
+
+# Prueba de ajuste del modelo
+
+with(mylogit120, null.deviance - deviance)
+
+with(mylogit120, df.null - df.residual)
+
+with(mylogit120, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
+    # Ho: Linear regression better than logistic regression
+    # pvalue: 0, se recha la hipótesis nula
 
 
 # # SEGUNDO TRIMESTRE 2020
 
-DataENOE220 <- DataENOE220[DataENOE220$per == 220, ] 
+DataENOE220 <- AllDataENOE[AllDataENOE$per == 220, ]
 
 # Características iniciales
 
@@ -263,54 +271,72 @@ DataENOE220$sex[DataENOE220$sex == 1] <- 0 # Hombre
 DataENOE220$sex[DataENOE220$sex == 2] <- 1 # Mujer
 
 
-# Dummies 
-
-library(fastDummies)
+# Variable categórica
 
 DataENOE220$niv_ins <- factor(DataENOE220$niv_ins)
 
-DataENOE220 <- mutate(dummy_cols(DataENOE220, select_columns = "niv_ins"))
-
-summary(DataENOE220)
 
 # Logistic regression
 
-mylogit.dummy220 <- glm(clase2 ~ sex + eda + niv_ins_1 + niv_ins_2 + niv_ins_3, 
-                     data = DataENOE220, family = "binomial")
+mylogit220 <- glm(clase2 ~ sex + eda + niv_ins, data = DataENOE220, family = "binomial")
 
-summary(mylogit.dummy220)
+summary(mylogit220)
+
+# Prueba de Wald: Para saber el efecto de la variable categórica
+
+wald.test(b = coef(mylogit220), Sigma = vcov(mylogit120), Terms = 4:6)
+
+    # H0: El efecto de la variable categórica no es estadísticamente significativo
+    # Resultado: Pvalue< 0.05, por tanto, se rechaza H0.
+
+# Radios de probabilidad e intervalos de confianza al 95%
+
+exp(cbind(OR = coef(mylogit220), confint(mylogit220)))
 
 # Calculo de probabilidades
 
-attach(DataENOE220)
+probmean220 <- with(DataENOE220, data.frame(sex = mean(sex), eda = mean(eda), niv_ins = factor(1:4)))
 
-coef.mylogitd220 <- coef(mylogit.dummy220) # Para acceder a los coeficientes calculados
+probmean220$niv_insP <- predict(mylogit220, newdata = probmean220, type = "response")
 
-prop.niv_ins220 <- table(niv_ins) 
-dim220 <- 58878 # Para sacar proporciones de la variable categorica niv_ins
+probmean220
 
-# Con los valores medios
-round((1/(1+exp(-((coef.mylogitd220[1]) + 
-                    (coef.mylogitd220[2]*mean(sex)) + 
-                    (coef.mylogitd220[3]*mean(eda)) + 
-                    (coef.mylogitd220[4]*(prop.niv_ins220[3]/dim220)) + 
-                    (coef.mylogitd220[5]*(prop.niv_ins220[3]/dim220)) + 
-                    (coef.mylogitd220[6]*(prop.niv_ins220[4]/dim220)) 
-                    ) ))), 4)   # Probabilidad 0.4490
+mean(probmean220$niv_insP)
+    # Probabilidad de estar desempleado a nivel nacional: 0.3803087
 
-# Con mujer, edad 23 y primaria completa
+probdec220 <- with(DataENOE220, data.frame(sex = mean(sex), eda = rep(seq(from = 15, to = 65, length.out = 10),
+                                                                      4), niv_ins = factor(rep(1:4, each = 10))))
 
-round((1/(1+exp(-((coef.mylogitd220[1]) + 
-                    (coef.mylogitd220[2]*1) + 
-                    (coef.mylogitd220[3]*23) + 
-                    (coef.mylogitd220[4]*(1)) + 
-                    (coef.mylogitd220[5]*(0)) + 
-                    (coef.mylogitd220[6]*(0)) 
-                    ) ))), 4)   # Probabilidad 0.6863
+probdec220n <- cbind(probdec220, predict(mylogit220, newdata = probdec220, type = "link",
+                                         se = TRUE))
+probdec220n<- within(probdec220n, {
+  PredictedProb <- plogis(fit)
+  LL <- plogis(fit - (1.96 * se.fit))
+  UL <- plogis(fit + (1.96 * se.fit))
+})
+
+probdec220n
+
+# Gráfica de probabilidades 
+
+ggplot(probdec220n, aes(x = eda, y = PredictedProb)) + ggtitle("Desempleo abierto 2020.2") + geom_ribbon(aes(ymin = LL, 
+                                                                       ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1)
+
+# Prueba de ajuste del modelo
+
+with(mylogit220, null.deviance - deviance)
+
+with(mylogit220, df.null - df.residual)
+
+with(mylogit220, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
+
+    # Ho: Linear regression better than logistic regression
+    # pvalue: 0, se recha la hipótesis nula
+
 
 # # TERCER TRIMESTRE 2020
 
-DataENOE320 <- DataENOE320[DataENOE320$per == 320, ]
+DataENOE320 <- AllDataENOE[AllDataENOE$per == 320, ]
 
 # Características iniciales
 
@@ -346,50 +372,68 @@ DataENOE320$sex[DataENOE320$sex == 1] <- 0 # Hombre
 DataENOE320$sex[DataENOE320$sex == 2] <- 1 # Mujer
 
 
-# Dummies 
-
-library(fastDummies)
+# Variable categórica
 
 DataENOE320$niv_ins <- factor(DataENOE320$niv_ins)
 
-DataENOE320 <- mutate(dummy_cols(DataENOE320, select_columns = "niv_ins"))
-
-summary(DataENOE320)
 
 # Logistic regression
 
-mylogit.dummy320 <- glm(clase2 ~ sex + eda + niv_ins_1 + niv_ins_2 + niv_ins_3, 
-                        data = DataENOE320, family = "binomial")
+mylogit320 <- glm(clase2 ~ sex + eda + niv_ins, data = DataENOE320, family = "binomial")
 
-summary(mylogit.dummy320)
+summary(mylogit320)
+
+# Prueba de Wald: Para saber el efecto de la variable categórica
+
+wald.test(b = coef(mylogit320), Sigma = vcov(mylogit320), Terms = 4:6)
+
+  # H0: El efecto de la variable categórica no es estadísticamente significativo
+  # Resultado: Pvalue< 0.05, por tanto, se rechaza H0.
+
+# Radios de probabilidad e intervalos de confianza al 95%
+
+exp(cbind(OR = coef(mylogit320), confint(mylogit320)))
 
 # Calculo de probabilidades
 
-attach(DataENOE320)
+probmean320 <- with(DataENOE320, data.frame(sex = mean(sex), eda = mean(eda), niv_ins = factor(1:4)))
 
-coef.mylogitd320 <- coef(mylogit.dummy320) # Para acceder a los coeficientes calculados
+probmean320$niv_insP <- predict(mylogit320, newdata = probmean320, type = "response")
 
-prop.niv_ins320 <- table(niv_ins) 
-dim320 <- 142075 # Para sacar proporciones de la variable categorica niv_ins
-  
-  # Con los valores medios
-round((1/(1+exp(-((coef.mylogitd320[1]) + 
-                      (coef.mylogitd320[2]*mean(sex)) + 
-                      (coef.mylogitd320[3]*mean(eda)) + 
-                      (coef.mylogitd320[4]*(prop.niv_ins320[3]/dim320)) + 
-                      (coef.mylogitd320[5]*(prop.niv_ins320[3]/dim320)) + 
-                      (coef.mylogitd320[6]*(prop.niv_ins320[4]/dim320)) 
-                      ) ))), 4)
+probmean320
 
-# Con mujer, edad 23 y primaria completa
+mean(probmean320$niv_insP)
+    # Probabilidad de estar desempleado a nivel nacional: 0.2075618
 
-round((1/(1+exp(-((coef.mylogitd320[1]) + 
-                    (coef.mylogitd320[2]*1) + 
-                    (coef.mylogitd320[3]*23) + 
-                    (coef.mylogitd320[4]*(1)) + 
-                    (coef.mylogitd320[5]*(0)) + 
-                    (coef.mylogitd320[6]*(0)) 
-                    ) ))), 4)
+probdec320 <- with(DataENOE320, data.frame(sex = mean(sex), eda = rep(seq(from = 15, to = 65, length.out = 10),
+                                                                      4), niv_ins = factor(rep(1:4, each = 10))))
+
+probdec320n <- cbind(probdec320, predict(mylogit320, newdata = probdec320, type = "link",
+                                         se = TRUE))
+probdec320n<- within(probdec320n, {
+  PredictedProb <- plogis(fit)
+  LL <- plogis(fit - (1.96 * se.fit))
+  UL <- plogis(fit + (1.96 * se.fit))
+})
+
+probdec320n
+
+# Gráfica de probabilidades 
+
+ggplot(probdec320n, aes(x = eda, y = PredictedProb)) + ggtitle("Desempleo abierto 2020.3") + geom_ribbon(aes(ymin = LL, 
+                                                                       ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1)
+
+# Prueba de ajuste del modelo
+
+with(mylogit320, null.deviance - deviance)
+
+with(mylogit320, df.null - df.residual)
+
+with(mylogit320, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
+
+    # Ho: Linear regression better than logistic regression
+    # Pvalue: 0, se recha la hipótesis nula
+
 
 
 # LO QUE FALTA
