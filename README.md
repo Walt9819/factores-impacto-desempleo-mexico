@@ -1,6 +1,6 @@
-# Equipo 18 BEDU
+# Equipo 18
 
-Carpeta con postworks y proyecto del equipo 18 del módulo 2 del curso Santander-Data Science de BEDU
+Carpeta con postworks y proyecto del equipo 18 del módulo 2
 
 ### Postworks
 <details><summary>Índice</summary>
