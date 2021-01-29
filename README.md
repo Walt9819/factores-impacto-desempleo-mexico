@@ -12,6 +12,7 @@ Carpeta con postworks y proyecto del equipo 18 del módulo 2
 |Postwork 3|[Archivo](Postworks/Sesion03/Postworks/Sesion3_Postwork.R)|
 |Postwork 4|[Archivo](Postworks/Sesion04/Postworks/Sesion4_Postwork.R)|
 |Postwork 5|[Archivo](Postworks/Sesion05/Postworks/Sesion5_Postwork.R)|
+|Postwork 6|[Archivo](Postworks/Sesion06/Postworks/Sesion6_Postwork.R)|
 
 </details>
 
