@@ -13,19 +13,25 @@ suppressWarnings(library(plotly))
 suppressWarnings(library(zoo))
 suppressWarnings(library(ISLR))
 
-################################# Carga Inicial: Inicio #################################
-## Encuesta Nacional de Ocupaci?n y Empleo (ENOE)
-# Descargar bases de datos para los trimestres disponibles del a?o 2019 - 2020 en formato DBF.
-# Disponibles en: https://www.inegi.org.mx/programas/enoe/15ymas/#Microdatos
-# Como primer paso se recomienda extraer todos los conjuntos de datos de los 5 archivos ZIP.
-# Lectura de Datos de sociodemogr?fico <SDEM>
-
 # Datos de conexi?n a MongoDB
 url_path = 'mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test'
 
 # Definici?n de carpeta de trabajo y conexi?n a base de datos MongoDB
 path <- "C:/Users/BALAMLAPTOP2/Documents/GitHub/factores-impacto-desempleo-mexico/Project"
 setwd(path)
+
+################################# Carga Inicial: Inicio #################################
+## ADVERTENCIA: Este carga se debe ejecutar una sola vez, debido a que la información 
+## ya se encuentra disponible en la base de datos MongoDB para fines de este proyecto a 
+# fecha corte Diciembre 2020.En caso de hacer pruebas, cambiar url path de conexión.
+## Ninguna de las variables definidas en esta sección se deben considerar para análisis 
+## posteriores (especialmente data frames).
+
+## Encuesta Nacional de Ocupaci?n y Empleo (ENOE)
+# Descargar bases de datos para los trimestres disponibles del a?o 2019 - 2020 en formato DBF.
+# Disponibles en: https://www.inegi.org.mx/programas/enoe/15ymas/#Microdatos
+# Como primer paso se recomienda extraer todos los conjuntos de datos de los 5 archivos ZIP.
+# Lectura de Datos de sociodemogr?fico <SDEM>
 
 # Definici?n de directorio de salida durante el proceso de descomprimir archivos se debe respetar 'enoe_sdem'
 outDir <- "C:\\Users\\BALAMLAPTOP2\\Documents\\GitHub\\factores-impacto-desempleo-mexico\\Project\\enoe_sdem"
@@ -590,7 +596,7 @@ with(mylogit320, pchisq(null.deviance - deviance, df.null - df.residual, lower.t
 ####  Visualizaciones sobre resultados del modelo y justificar la importancia del proyecto.
 # Empleo en MÃ©xico 2019 - 2020
 # Asignar formato a la fecha del conjunto de datos IMSS
-imssData <- data_imss
+# imssData <- data_imss
 imssData <- imssData %>% separate(mes, into = c('anio', 'mes'), sep = '-')
 imssData$date_month <-as.Date(as.yearmon(paste(imssData$anio, "/", imssData$mes, sep=""), format="%Y/%m"))
 
