@@ -21,10 +21,10 @@ path <- "C:/Users/BALAMLAPTOP2/Documents/GitHub/factores-impacto-desempleo-mexic
 setwd(path)
 
 ################################# Carga Inicial: Inicio #################################
-## ADVERTENCIA: Este carga se debe ejecutar una sola vez, debido a que la informaci�n 
+## ADVERTENCIA: Este carga se debe ejecutar una sola vez, debido a que la informaci?n 
 ## ya se encuentra disponible en la base de datos MongoDB para fines de este proyecto a 
-# fecha corte Diciembre 2020.En caso de hacer pruebas, cambiar url path de conexi�n.
-## Ninguna de las variables definidas en esta secci�n se deben considerar para an�lisis 
+# fecha corte Diciembre 2020.En caso de hacer pruebas, cambiar url path de conexi?n.
+## Ninguna de las variables definidas en esta secci?n se deben considerar para an?lisis 
 ## posteriores (especialmente data frames).
 
 ## Encuesta Nacional de Ocupaci?n y Empleo (ENOE)
@@ -149,12 +149,14 @@ mongo$insert(data_imss_covid)
 covidData.DB <- mongo(db="bedu18", collection="data_covid", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
 logitData.DB <- mongo(db="bedu18", collection="data_logit", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
 imssDatamx.DB <- mongo(db="bedu18", collection="datamx_imss", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
+imssCovid.DB <- mongo(db="bedu18", collection="datamx_imss_covid", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
 
 ## Lectura datos (DENUE, ENOE y COVID)
 # Lectura DENUE y COVID
 allLogitData <- logitData.DB$find('{}')
 allCovidData <- covidData.DB$find('{}')
 imssData <- imssDatamx.DB$find('{}')
+imssCovid <- imssCovid.DB$find('{}')
 
 # Lectura ENOE (opcional)
 
@@ -596,9 +598,11 @@ with(mylogit320, pchisq(null.deviance - deviance, df.null - df.residual, lower.t
 ####  Visualizaciones sobre resultados del modelo y justificar la importancia del proyecto.
 # Empleo en México 2019 - 2020
 # Asignar formato a la fecha del conjunto de datos IMSS
-# imssData <- data_imss
 imssData <- imssData %>% separate(mes, into = c('anio', 'mes'), sep = '-')
 imssData$date_month <-as.Date(as.yearmon(paste(imssData$anio, "/", imssData$mes, sep=""), format="%Y/%m"))
+
+# CUIDADO!!! esta librería causa problemas con `dplyr`
+#detach(package:plyr) # o llamar explícitamente las funciones de `dplyr`
 
 # Agrupado de los datos por el atributo fecha
 data_chart1 <- imssData %>% group_by(date_month) %>% dplyr::summarise(asegurados = sum(asegurados))
@@ -607,8 +611,76 @@ data_chart1 <- imssData %>% group_by(date_month) %>% dplyr::summarise(asegurados
 # Se resalta la mayor caída de empleos registrada en México, ocasionada principalmente por la pandemia COVID-19. 
 # Donde la tasa de ocupación entre Febrero y Julio del 2020 cayó % perdiendo mas de X millones de puestos formales como informales.
 
-plot_ly(data = data_chart1, x = ~date_month, y = ~asegurados, mode = 'lines', line = list(color = 'rgb(205, 12, 24)', width = 4)) %>% layout(title = "Empleo en México 2019 - 2020", 
-                                                                                                                                             xaxis = list(title = ""), yaxis = list (title = "Empleados"))
+plot_ly(data = data_chart1, x = ~date_month, y = ~asegurados, mode = 'lines', line = list(color = 'rgb(205, 12, 24)', width = 4)) %>% 
+  layout(title = "Empleo en México 2019 - 2020", xaxis = list(title = ""), yaxis = list (title = "Empleados"))
 
 
+# Daily COVID cases
+url_covid_daily <- "https://api.datamexico.org/tesseract/cubes/gobmx_covid_stats_mun/aggregate.jsonrecords?drilldowns%5B%5D=Geography.Geography.Municipality&drilldowns%5B%5D=Reported+Date.Time.Time&measures%5B%5D=Daily+Cases&measures%5B%5D=Daily+Deaths&measures%5B%5D=Daily+Hospitalized&parents=false&sparse=false"
+json_covid_daily <- fromJSON(paste(readLines(url_covid_daily, warn=FALSE), collapse=""))
 
+# Antes de aplicar un do.call con metodo rbind se deben anular las listas (unlist) para extraer los datos del JSON
+json_covid_daily <- lapply(json_covid_daily$data, function(x) {
+  x[sapply(x, is.null)] <- NA
+  unlist(x)
+})
+
+# Construcci?n de dataframe y cambio de nombre a las columnas.
+data_covid_daily <-as.data.frame(do.call("rbind", json_covid))
+colnames(data_covid_daily) <- c("imun", "mun", "idmes", "mes", "casos_diarios", "muertos_diarios", "hospitalizados_diarios")
+
+# Convertir de character a n?merico valores 
+data_covid_daily[,5:7] <- sapply(data_covid_daily[, 5:7], as.numeric)
+data_covid_daily$mes <- as.Date(data_covid_daily$mes) # Convertimos a fechas
+
+summary(data_covid_daily) # Observamos los datos
+
+# Separar fecha
+monthCovid.data <- data_covid_daily %>% separate(mes, into = c('year', 'month', 'day'), sep = '-')
+monthCovid.data$idmes <- paste(monthCovid.data$year, monthCovid.data$month, sep="")
+
+# Obtener promedio por mes
+monthCovid.data <- monthCovid.data %>% dplyr::group_by(imun, idmes) %>% 
+                    dplyr::summarise(casos_diarios_prom = mean(casos_diarios), muertos_diarios_prom = mean(muertos_diarios), hospitalizados_diarios_prom = mean(hospitalizados_diarios))
+
+# Juntar con los datos de asegurados
+monthCovidImss.data <- merge(imssData %>% select(asegurados, imun, idmes), 
+                         monthCovid.data,
+                         by = c("imun", "idmes"), all.x = TRUE)
+
+monthCovidImss.data <- monthCovidImss.data %>% dplyr::filter(substr(stri_reverse(imun), 1, 3) != "999") # eliminar municipios desconocidos (terminan con 999)
+
+# Obtener tasa de cambio en el número de empleos
+monthCovidImss.data <- monthCovidImss.data %>% dplyr::group_by(imun) %>% dplyr::mutate(tasa_empleabilidad = c(0, diff(asegurados)))
+monthCovidImss.data[is.na(monthCovidImss.data)] <- 0 # municipios sin casos reportados hasta ese momento, marcar como 0 casos
+
+monthCovImss.nacional <- monthCovidImss.data %>% dplyr::group_by(idmes) %>% 
+          dplyr::summarise(casos = mean(casos_diarios_prom), 
+                           tasa = mean(tasa_empleabilidad), 
+                           muertes = mean(muertos_diarios_prom),
+                           hospitalizados = mean(hospitalizados_diarios_prom)
+                           )
+
+monthCovImss.nacional <- monthCovImss.nacional %>% mutate(monYear = as.Date(as.yearmon(idmes, format="%Y%m")))
+
+# Gráfico con tasa de empleabilidad 
+plot_ly(data = monthCovImss.nacional, x = ~monYear, y = ~tasa, mode = 'lines', line = list(color = 'rgb(205, 12, 24)', width = 4)) %>% 
+  layout(title = "Tasa de empleabilidad en México 2019 - 2020", xaxis = list(title = ""), yaxis = list (title = "Tasa empleabilidad"))
+
+
+names(monthCovidImss.data)
+
+# Create data for fitting linear model
+trainCovImss.data <- monthCovidImss.data %>% dplyr::mutate(mun = as.factor(imun), 
+                                                    casos = casos_diarios_prom, 
+                                                    muertes = muertos_diarios_prom, 
+                                                    hosp = hospitalizados_diarios_prom,
+                                                    tasa = tasa_empleabilidad
+                                                    ) %>% 
+                                            dplyr::select(mun, casos, muertes, hosp, tasa)
+
+
+pairs(trainCovImss.data[, 2:6], pch = 19, lower.panel = NULL) # data plot
+
+# Working on this
+covImss.lm <- lm(tasa ~ . - imun, trainCovImss.data)
