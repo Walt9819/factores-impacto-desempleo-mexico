@@ -11,8 +11,8 @@ suppressWarnings(library(reshape2))
 suppressWarnings(library(tidyr))
 suppressWarnings(library(plotly))
 suppressWarnings(library(zoo))
-
-require(ISLR)
+suppressWarnings(library(plyr))
+suppressWarnings(library(ISLR))
 
 ################################# Carga Inicial: Inicio #################################
 ## Encuesta Nacional de Ocupación y Empleo (ENOE)
@@ -28,8 +28,17 @@ url_path = 'mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/
 path <- "C:/Users/BALAMLAPTOP2/Documents/GitHub/factores-impacto-desempleo-mexico/Project"
 setwd(path)
 
+# Definición de directorio de salida durante el proceso de descomprimir archivos se debe respetar 'enoe_sdem'
+outDir <- "C:\\Users\\BALAMLAPTOP2\\Documents\\GitHub\\factores-impacto-desempleo-mexico\\Project\\enoe_sdem"
+
+# Extrae los archivos .dbf de los archivos comprimidos ZIP
+for (zfile in list.files(pattern = "*.zip$", recursive = TRUE)) {
+  print(zfile)
+  unzip(zfile, exdir = outDir)
+}
+
 # Lectura de todos los archivos .dbf en la carpeta del proyecto
-rawdata <- lapply(list.files(pattern = "*.dbf", recursive = TRUE), read.dbf)
+rawdata <- lapply(list.files(pattern = "*.dbf$", recursive = TRUE), read.dbf)
 
 # Extracción de atributos considerados para el modelo de regresión lógistica y lineal. 
 selecteddata <- lapply(rawdata, select, c("ENT", "MUN", "SEX", "EDA", "NIV_INS", "RAMA", "CLASE2", "PER"))
