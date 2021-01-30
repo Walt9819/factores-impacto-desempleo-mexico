@@ -11,7 +11,6 @@ suppressWarnings(library(reshape2))
 suppressWarnings(library(tidyr))
 suppressWarnings(library(plotly))
 suppressWarnings(library(zoo))
-suppressWarnings(library(plyr))
 suppressWarnings(library(ISLR))
 
 ################################# Carga Inicial: Inicio #################################
@@ -355,8 +354,8 @@ probdec120n
 
 # Gráfica de probabilidades 
 
-ggplot(probdec120n, aes(x = eda, y = PredictedProb))+ ggtitle("Desempleo abierto 2020.1") + geom_ribbon(aes(ymin = LL, 
-      ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1)
+ggplotly(ggplot(probdec120n, aes(x = eda, y = PredictedProb))+ ggtitle("Desempleo abierto 2020.1") + geom_ribbon(aes(ymin = LL, 
+      ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
 
 # Prueba de ajuste del modelo
 
@@ -455,8 +454,8 @@ probdec220n
 
 # Gráfica de probabilidades 
 
-ggplot(probdec220n, aes(x = eda, y = PredictedProb)) + ggtitle("Desempleo abierto 2020.2") + geom_ribbon(aes(ymin = LL, 
-                                                                       ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1)
+ggplotly(ggplot(probdec220n, aes(x = eda, y = PredictedProb)) + ggtitle("Desempleo abierto 2020.2") + geom_ribbon(aes(ymin = LL, 
+                                                                       ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
 
 # Prueba de ajuste del modelo
 
@@ -556,8 +555,8 @@ probdec320n
 
 # Gráfica de probabilidades 
 
-ggplot(probdec320n, aes(x = eda, y = PredictedProb)) + ggtitle("Desempleo abierto 2020.3") + geom_ribbon(aes(ymin = LL, 
-                                                                       ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1)
+ggplotly(ggplot(probdec320n, aes(x = eda, y = PredictedProb)) + ggtitle("Desempleo abierto 2020.3") + geom_ribbon(aes(ymin = LL, 
+                                                                       ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
 
 # Prueba de ajuste del modelo
 
