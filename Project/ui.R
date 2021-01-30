@@ -68,6 +68,8 @@ navbarPage("Economia - COVID19", id="nav",
   
   tabPanel("Analisis de Datos Exploratorio", ),
   
+  tabPanel("General", ),
+  
   tabPanel("Explorador de Datos",
     fluidRow(
       column(3,
