@@ -14,20 +14,20 @@ suppressWarnings(library(zoo))
 suppressWarnings(library(ISLR))
 
 ################################# Carga Inicial: Inicio #################################
-## Encuesta Nacional de Ocupación y Empleo (ENOE)
-# Descargar bases de datos para los trimestres disponibles del año 2019 - 2020 en formato DBF.
+## Encuesta Nacional de Ocupaci?n y Empleo (ENOE)
+# Descargar bases de datos para los trimestres disponibles del a?o 2019 - 2020 en formato DBF.
 # Disponibles en: https://www.inegi.org.mx/programas/enoe/15ymas/#Microdatos
 # Como primer paso se recomienda extraer todos los conjuntos de datos de los 5 archivos ZIP.
-# Lectura de Datos de sociodemográfico <SDEM>
+# Lectura de Datos de sociodemogr?fico <SDEM>
 
-# Datos de conexión a MongoDB
+# Datos de conexi?n a MongoDB
 url_path = 'mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test'
 
-# Definición de carpeta de trabajo y conexión a base de datos MongoDB
+# Definici?n de carpeta de trabajo y conexi?n a base de datos MongoDB
 path <- "C:/Users/BALAMLAPTOP2/Documents/GitHub/factores-impacto-desempleo-mexico/Project"
 setwd(path)
 
-# Definición de directorio de salida durante el proceso de descomprimir archivos se debe respetar 'enoe_sdem'
+# Definici?n de directorio de salida durante el proceso de descomprimir archivos se debe respetar 'enoe_sdem'
 outDir <- "C:\\Users\\BALAMLAPTOP2\\Documents\\GitHub\\factores-impacto-desempleo-mexico\\Project\\enoe_sdem"
 
 # Extrae los archivos .dbf de los archivos comprimidos ZIP
@@ -39,24 +39,24 @@ for (zfile in list.files(pattern = "*.zip$", recursive = TRUE)) {
 # Lectura de todos los archivos .dbf en la carpeta del proyecto
 rawdata <- lapply(list.files(pattern = "*.dbf$", recursive = TRUE), read.dbf)
 
-# Extracción de atributos considerados para el modelo de regresión lógistica y lineal. 
+# Extracci?n de atributos considerados para el modelo de regresi?n l?gistica y lineal. 
 selecteddata <- lapply(rawdata, select, c("ENT", "MUN", "SEX", "EDA", "NIV_INS", "RAMA", "CLASE2", "PER"))
 
-# Construcción de data frame y cambio de nombres
+# Construcci?n de data frame y cambio de nombres
 data_enoe <- do.call(rbind, selecteddata)
 colnames(data_enoe) <- c("cve_ent", "cve_mun", "sex", "eda", "niv_ins", "rama", "clase2", "per") # Este paso se puede omitir
 
 # Se omiten valores NaN dentro de la base de datos.
 data_enoe <- na.omit(data_enoe)
 
-# Se establece una conexión a MongoDB y se cargan todos los datos en la colección 'data_enoe'
+# Se establece una conexi?n a MongoDB y se cargan todos los datos en la colecci?n 'data_enoe'
 mongo <- mongo(collection = "data_enoe", db = "bedu18", url = url_path, verbose = TRUE)
 mongo$insert(data_enoe)
 
-## Empleados asegurados en el IMSS (API Data México)
-# Conexión vía API al modelo de datos Data México de la Secretaría de Economía
+## Empleados asegurados en el IMSS (API Data M?xico)
+# Conexi?n v?a API al modelo de datos Data M?xico de la Secretar?a de Econom?a
 
-# Se construye URL de conexión para extraer datos del cubo IMSS con drilldown hasta Municipios y Meses para la métrica Empleados asegurados
+# Se construye URL de conexi?n para extraer datos del cubo IMSS con drilldown hasta Municipios y Meses para la m?trica Empleados asegurados
 # Solicitud de datos con salida JSON
 url_imss <- "https://dev-api.datamexico.org/tesseract/data.jsonrecords?cube=imss&drilldowns=Municipality%2CMonth&measures=Insured+Employment&parents=false&sparse=false"
 json_imss <- fromJSON(paste(readLines(url_imss, warn=FALSE), collapse=""))
@@ -67,22 +67,22 @@ json_imss <- lapply(json_imss$data, function(x) {
   unlist(x)
 })
 
-# Construcción de dataframe y cambio de nombre a las columnas.
+# Construcci?n de dataframe y cambio de nombre a las columnas.
 data_imss <-as.data.frame(do.call("rbind", json_imss))
 colnames(data_imss) <- c("imun", "mun", "idmes", "mes","asegurados")
 
-# Convertir de character a númerico valores sobre asegurados en el IMSS
+# Convertir de character a n?merico valores sobre asegurados en el IMSS
 data_imss[,5] <- sapply(data_imss[, 5], as.numeric)
 
-# Carga de datos IMSS a MongoDB (Comment: Crear función para subir dataframes a MongoDB, entrada nombre de la colección y dataframe)
+# Carga de datos IMSS a MongoDB (Comment: Crear funci?n para subir dataframes a MongoDB, entrada nombre de la colecci?n y dataframe)
 mongo <- mongo(collection = "datamx_imss", db = "bedu18", 
                url = url_path, 
                verbose = TRUE)
 mongo$insert(data_imss[,c(1:2,4:5)])
 
-## COVID19 (API Data México)
-# Se construye URL de conexión para extraer datos del cubo gobmx_covid_stats_mun con drilldown 
-# hasta municipios y mes para las métricas Casos diarios, Muertes diarias y hospitalizados diarios 
+## COVID19 (API Data M?xico)
+# Se construye URL de conexi?n para extraer datos del cubo gobmx_covid_stats_mun con drilldown 
+# hasta municipios y mes para las m?tricas Casos diarios, Muertes diarias y hospitalizados diarios 
 # (el agregado aplicado por el cubo OLAP es por defecto SUMA).
 url_covid <- "https://api.datamexico.org/tesseract/cubes/gobmx_covid_stats_mun/aggregate.jsonrecords?drilldowns%5B%5D=Geography.Geography.Municipality&drilldowns%5B%5D=Reported+Date.Time.Month&measures%5B%5D=Daily+Cases&measures%5B%5D=Daily+Deaths&measures%5B%5D=Daily+Hospitalized&parents=false&sparse=false"
 json_covid <- fromJSON(paste(readLines(url_covid, warn=FALSE), collapse=""))
@@ -93,54 +93,54 @@ json_covid <- lapply(json_covid$data, function(x) {
   unlist(x)
 })
 
-# Construcción de dataframe y cambio de nombre a las columnas.
+# Construcci?n de dataframe y cambio de nombre a las columnas.
 data_covid <-as.data.frame(do.call("rbind", json_covid))
 colnames(data_covid) <- c("imun", "mun", "idmes", "mes", "casos_diarios", "muertos_diarios", "hospitalizados_diarios")
 
-# Convertir de character a númerico valores 
+# Convertir de character a n?merico valores 
 data_covid[,5:7] <- sapply(data_covid[, 5:7], as.numeric)
 
 # Carga de datos COVID a MongoDB 
-# (Comment: Crear función para subir dataframes a MongoDB, entrada nombre de la colección y dataframe)
+# (Comment: Crear funci?n para subir dataframes a MongoDB, entrada nombre de la colecci?n y dataframe)
 mongo <- mongo(collection = "datamx_covid", db = "bedu18", url = url_path, verbose = TRUE)
 mongo$insert(data_covid[,c(1:2,4:7)])
 
 
-## Integración de datos para IMSS y COVID por municipio y fecha
-# Para no perder resolución en la calidad de los datos se ejecuta un inner join a la izquierda.
+## Integraci?n de datos para IMSS y COVID por municipio y fecha
+# Para no perder resoluci?n en la calidad de los datos se ejecuta un inner join a la izquierda.
 # Se mantienen los valores sin municipio definido con claves en entidad = 9 y municipio = 999. 
-# (Omitir del análisis en caso de ser requerido aquellos registros con clave del municipio a 999, clave definida desde origen)
+# (Omitir del an?lisis en caso de ser requerido aquellos registros con clave del municipio a 999, clave definida desde origen)
 data_imss_covid <- merge(data_imss, 
                          data_covid, 
                          by = c("imun", "mes"), all.x = TRUE) 
 
-# Se separa el atributo identificador del mes en anio y mes por convención. Al igual que, el identificador del municipio.
-# Se requiere de esa manera para gráficos y mapas a incorporar.
+# Se separa el atributo identificador del mes en anio y mes por convenci?n. Al igual que, el identificador del municipio.
+# Se requiere de esa manera para gr?ficos y mapas a incorporar.
 data_imss_covid <- data_imss_covid %>% separate(mes, into = c('anio', 'mes'), sep = '-')
 data_imss_covid <- data_imss_covid %>% separate(imun, into = c('cve_ent', 'cve_mun'), sep = -3)
 
-# Se filtra el año 2020
+# Se filtra el a?o 2020
 data_imss_covid <- data_imss_covid[data_imss_covid$anio == '2020', ]
 
-# Se ejecuta un subset para mantener aquellos atributos no repetidos después del merge.
+# Se ejecuta un subset para mantener aquellos atributos no repetidos despu?s del merge.
 data_imss_covid <- as.data.frame(subset(data_imss_covid, select=c("cve_ent", "cve_mun", "anio", "mes", "asegurados", "casos_diarios", "muertos_diarios", "hospitalizados_diarios")))
 
-# Se asigna cero a aquellas métricas que no tienen concidencia después del left join.
+# Se asigna cero a aquellas m?tricas que no tienen concidencia despu?s del left join.
 # Principalmente para aquellos municipios que empezaron a registrar casos de COVID en mese posteriores
 data_imss_covid[is.na(data_imss_covid)] <- 0
 
-# Convertir de character a númerico valores 
+# Convertir de character a n?merico valores 
 data_imss_covid[,3:8] <- sapply(data_imss_covid[, 3:8], as.numeric)
 
 # Carga de datos COVID a MongoDB 
-# (Comment: Crear función para subir dataframes a MongoDB, entrada nombre de la colección y dataframe)
+# (Comment: Crear funci?n para subir dataframes a MongoDB, entrada nombre de la colecci?n y dataframe)
 mongo <- mongo(collection = "datamx_imss_covid", db = "bedu18", url = url_path, verbose = TRUE)
 mongo$insert(data_imss_covid)
 
 ################################# Carga Inicial: Fin #################################
 
 #### Lectura de datos ####
-## Conexión a MongoDB
+## Conexi?n a MongoDB
 covidData.DB <- mongo(db="bedu18", collection="data_covid", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
 logitData.DB <- mongo(db="bedu18", collection="data_logit", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
 imssDatamx.DB <- mongo(db="bedu18", collection="datamx_imss", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
@@ -159,22 +159,22 @@ imssData <- imssDatamx.DB$find('{}')
 # Limpieza general
 
 
-#### Exploración de datos ####
+#### Exploraci?n de datos ####
 
-## Gráfico `pairs` pairs(iris[,1:4], pch = 19, lower.panel = NULL)
+## Gr?fico `pairs` pairs(iris[,1:4], pch = 19, lower.panel = NULL)
 
 ## Heatmap correlaciones atributo vs atributo
 
-#### Análisis ####
-## Modelo "lineal" ENOE para predecir: probabilidad desempleo ~ c(sexo, edad, nivel educativo, sector económico, estado de residencia)
+#### An?lisis ####
+## Modelo "lineal" ENOE para predecir: probabilidad desempleo ~ c(sexo, edad, nivel educativo, sector econ?mico, estado de residencia)
 
-## Modelo "Logit" ENOE para predecir: probabilidad desempleo ~ c(sexo, edad, nivel educativo, sector económico, estado de residencia)
+## Modelo "Logit" ENOE para predecir: probabilidad desempleo ~ c(sexo, edad, nivel educativo, sector econ?mico, estado de residencia)
 ## check results
 summary(allLogitData)
 sapply(allLogitData, sd)
 xtabs(~eda + clase2, data = allLogitData)
 
-# Análisis exploratorio
+# An?lisis exploratorio
 
 names(allLogitData)
 
@@ -260,7 +260,7 @@ newdata1
 
 # MODELOS ENOE 2020.1, 2020.2, 2020.3
 
-# Conexión con MongoDB
+# Conexi?n con MongoDB
 
 ENOEData.DB <- mongo(db="bedu18", collection="data_enoe", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
 
@@ -272,7 +272,7 @@ AllDataENOE <- ENOEData.DB$find('{}')
 
 DataENOE120 <- AllDataENOE[AllDataENOE$per == 120, ]
 
-# Características iniciales
+# Caracter?sticas iniciales
 
 names(DataENOE120)
 
@@ -306,7 +306,7 @@ DataENOE120$sex[DataENOE120$sex == 1] <- 0 # Hombre
 DataENOE120$sex[DataENOE120$sex == 2] <- 1 # Mujer
 
 
-# Variable categórica
+# Variable categ?rica
 
 DataENOE120$niv_ins <- factor(DataENOE120$niv_ins)
 
@@ -317,11 +317,11 @@ mylogit120 <- glm(clase2 ~ sex + eda + niv_ins, data = DataENOE120, family = "bi
 
 summary(mylogit120)
 
-# Prueba de Wald: Para saber el efecto de la variable categórica
+# Prueba de Wald: Para saber el efecto de la variable categ?rica
 
 wald.test(b = coef(mylogit120), Sigma = vcov(mylogit120), Terms = 4:6)
 
-    # H0: El efecto de la variable categórica no es estadísticamente significativo
+    # H0: El efecto de la variable categ?rica no es estad?sticamente significativo
     # Resultado: Pvalue< 0.05, por tanto, se rechaza H0.
 
 # Radios de probabilidad e intervalos de confianza al 95%
@@ -352,7 +352,7 @@ probdec120n<- within(probdec120n, {
 
 probdec120n
 
-# Gráfica de probabilidades 
+# Gr?fica de probabilidades 
 
 ggplotly(ggplot(probdec120n, aes(x = eda, y = PredictedProb))+ ggtitle("Desempleo abierto 2020.1") + geom_ribbon(aes(ymin = LL, 
       ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
@@ -365,14 +365,14 @@ with(mylogit120, df.null - df.residual)
 
 with(mylogit120, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
     # Ho: Linear regression better than logistic regression
-    # pvalue: 0, se recha la hipótesis nula
+    # pvalue: 0, se recha la hip?tesis nula
 
 
 # # SEGUNDO TRIMESTRE 2020
 
 DataENOE220 <- AllDataENOE[AllDataENOE$per == 220, ]
 
-# Características iniciales
+# Caracter?sticas iniciales
 
 names(DataENOE220)
 
@@ -406,7 +406,7 @@ DataENOE220$sex[DataENOE220$sex == 1] <- 0 # Hombre
 DataENOE220$sex[DataENOE220$sex == 2] <- 1 # Mujer
 
 
-# Variable categórica
+# Variable categ?rica
 
 DataENOE220$niv_ins <- factor(DataENOE220$niv_ins)
 
@@ -417,11 +417,11 @@ mylogit220 <- glm(clase2 ~ sex + eda + niv_ins, data = DataENOE220, family = "bi
 
 summary(mylogit220)
 
-# Prueba de Wald: Para saber el efecto de la variable categórica
+# Prueba de Wald: Para saber el efecto de la variable categ?rica
 
 wald.test(b = coef(mylogit220), Sigma = vcov(mylogit120), Terms = 4:6)
 
-    # H0: El efecto de la variable categórica no es estadísticamente significativo
+    # H0: El efecto de la variable categ?rica no es estad?sticamente significativo
     # Resultado: Pvalue< 0.05, por tanto, se rechaza H0.
 
 # Radios de probabilidad e intervalos de confianza al 95%
@@ -452,7 +452,7 @@ probdec220n<- within(probdec220n, {
 
 probdec220n
 
-# Gráfica de probabilidades 
+# Gr?fica de probabilidades 
 
 ggplotly(ggplot(probdec220n, aes(x = eda, y = PredictedProb)) + ggtitle("Desempleo abierto 2020.2") + geom_ribbon(aes(ymin = LL, 
                                                                        ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
@@ -466,14 +466,14 @@ with(mylogit220, df.null - df.residual)
 with(mylogit220, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
 
     # Ho: Linear regression better than logistic regression
-    # pvalue: 0, se recha la hipótesis nula
+    # pvalue: 0, se recha la hip?tesis nula
 
 
 # # TERCER TRIMESTRE 2020
 
 DataENOE320 <- AllDataENOE[AllDataENOE$per == 320, ]
 
-# Características iniciales
+# Caracter?sticas iniciales
 
 names(DataENOE320)
 
@@ -507,7 +507,7 @@ DataENOE320$sex[DataENOE320$sex == 1] <- 0 # Hombre
 DataENOE320$sex[DataENOE320$sex == 2] <- 1 # Mujer
 
 
-# Variable categórica
+# Variable categ?rica
 
 DataENOE320$niv_ins <- factor(DataENOE320$niv_ins)
 
@@ -518,11 +518,11 @@ mylogit320 <- glm(clase2 ~ sex + eda + niv_ins, data = DataENOE320, family = "bi
 
 summary(mylogit320)
 
-# Prueba de Wald: Para saber el efecto de la variable categórica
+# Prueba de Wald: Para saber el efecto de la variable categ?rica
 
 wald.test(b = coef(mylogit320), Sigma = vcov(mylogit320), Terms = 4:6)
 
-  # H0: El efecto de la variable categórica no es estadísticamente significativo
+  # H0: El efecto de la variable categ?rica no es estad?sticamente significativo
   # Resultado: Pvalue< 0.05, por tanto, se rechaza H0.
 
 # Radios de probabilidad e intervalos de confianza al 95%
@@ -553,7 +553,7 @@ probdec320n<- within(probdec320n, {
 
 probdec320n
 
-# Gráfica de probabilidades 
+# Gr?fica de probabilidades 
 
 ggplotly(ggplot(probdec320n, aes(x = eda, y = PredictedProb)) + ggtitle("Desempleo abierto 2020.3") + geom_ribbon(aes(ymin = LL, 
                                                                        ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
@@ -567,7 +567,7 @@ with(mylogit320, df.null - df.residual)
 with(mylogit320, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
 
     # Ho: Linear regression better than logistic regression
-    # Pvalue: 0, se recha la hipótesis nula
+    # Pvalue: 0, se recha la hip?tesis nula
 
 
 
@@ -579,27 +579,34 @@ with(mylogit320, pchisq(null.deviance - deviance, df.null - df.residual, lower.t
 ## Random forest
 ## Modelo Bayesiano (opcional)
 
-## (Pensamiento al aire) Comparación entre variables antes del COVID (restricciones) y con COVID
+## (Pensamiento al aire) Comparaci?n entre variables antes del COVID (restricciones) y con COVID
 
 #### Dashboard ####
 ## Indicadores propuestos por municipio (en mapa) de forma descriptiva
 
-## Gráficos modelo "logit"
+## Gr?ficos modelo "logit"
 
-## Ingresar datos para generar predicción
+## Ingresar datos para generar predicci?n
 
 ####  Visualizaciones sobre resultados del modelo y justificar la importancia del proyecto.
-# Empleo en México 2019 - 2020
+# Empleo en MÃ©xico 2019 - 2020
 # Asignar formato a la fecha del conjunto de datos IMSS
+imssData <- data_imss
 imssData <- imssData %>% separate(mes, into = c('anio', 'mes'), sep = '-')
 imssData$date_month <-as.Date(as.yearmon(paste(imssData$anio, "/", imssData$mes, sep=""), format="%Y/%m"))
 
+# CUIDADO!!! esta librerÃ­a causa problemas con `dplyr`
+detach(package:plyr) # o llamar explÃ­citamente las funciones de `dplyr`
+
 # Agrupado de los datos por el atributo fecha
-data_chart1 <- imssData %>% group_by(date_month) %>% summarise(asegurados = sum(asegurados))
+data_chart1 <- imssData %>% dplyr::group_by(date_month) %>% dplyr::summarise(asegurados = sum(asegurados))
 
-# Visualización del empleo en México y su evolución mensual
-# Se resalta la mayor caída de empleos registrada en México, ocasionada principalmente por la pandemia COVID-19. 
-# Donde la tasa de ocupación entre Febrero y Julio del 2020 cayó % perdiendo mas de X millones de puestos formales como informales.
+# VisualizaciÃ³n del empleo en MÃ©xico y su evoluciÃ³n mensual
+# Se resalta la mayor caÃ­da de empleos registrada en MÃ©xico, ocasionada principalmente por la pandemia COVID-19. 
+# Donde la tasa de ocupaciÃ³n entre Febrero y Julio del 2020 cayÃ³ % perdiendo mas de X millones de puestos formales como informales.
 
-plot_ly(data = data_chart1, x = ~date_month, y = ~asegurados, mode = 'lines', line = list(color = 'rgb(205, 12, 24)', width = 4)) %>% layout(title = "Empleo en México 2019 - 2020", 
-                                                                                         xaxis = list(title = ""), yaxis = list (title = "Empleados"))
+plot_ly(data = data_chart1, x = ~date_month, y = ~asegurados, mode = 'lines', line = list(color = 'rgb(205, 12, 24)', width = 4)) %>% layout(title = "Empleo en MÃ©xico 2019 - 2020", 
+                                                                                                                                             xaxis = list(title = ""), yaxis = list (title = "Empleados"))
+
+
+
