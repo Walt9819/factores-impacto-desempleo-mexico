@@ -32,7 +32,6 @@ outDir <- "C:\\Users\\BALAMLAPTOP2\\Documents\\GitHub\\factores-impacto-desemple
 
 # Extrae los archivos .dbf de los archivos comprimidos ZIP
 for (zfile in list.files(pattern = "*.zip$", recursive = TRUE)) {
-  print(zfile)
   unzip(zfile, exdir = outDir)
 }
 
@@ -44,7 +43,7 @@ selecteddata <- lapply(rawdata, select, c("ENT", "MUN", "SEX", "EDA", "NIV_INS",
 
 # Construcci?n de data frame y cambio de nombres
 data_enoe <- do.call(rbind, selecteddata)
-colnames(data_enoe) <- c("cve_ent", "cve_mun", "sex", "eda", "niv_ins", "rama", "clase2", "per") # Este paso se puede omitir
+colnames(data_enoe) <- c("cve_ent", "cve_mun", "sex", "eda", "niv_ins", "rama", "clase2", "per")
 
 # Se omiten valores NaN dentro de la base de datos.
 data_enoe <- na.omit(data_enoe)
@@ -595,11 +594,8 @@ imssData <- data_imss
 imssData <- imssData %>% separate(mes, into = c('anio', 'mes'), sep = '-')
 imssData$date_month <-as.Date(as.yearmon(paste(imssData$anio, "/", imssData$mes, sep=""), format="%Y/%m"))
 
-# CUIDADO!!! esta librería causa problemas con `dplyr`
-detach(package:plyr) # o llamar explícitamente las funciones de `dplyr`
-
 # Agrupado de los datos por el atributo fecha
-data_chart1 <- imssData %>% dplyr::group_by(date_month) %>% dplyr::summarise(asegurados = sum(asegurados))
+data_chart1 <- imssData %>% group_by(date_month) %>% dplyr::summarise(asegurados = sum(asegurados))
 
 # Visualización del empleo en México y su evolución mensual
 # Se resalta la mayor caída de empleos registrada en México, ocasionada principalmente por la pandemia COVID-19. 
