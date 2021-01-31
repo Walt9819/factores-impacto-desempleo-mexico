@@ -159,21 +159,46 @@ imssData <- imssDatamx.DB$find('{}')
 imssCovid <- imssCovid.DB$find('{}')
 
 
-# MODELOS ENOE 2020.1, 2020.2, 2020.3
+##################################### INICIO : ENOE #####################################
 
-# Conexi?n con MongoDB
+# Conexion con MongoDB
 
 ENOEData.DB <- mongo(db="bedu18", collection="data_enoe", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
 
 AllDataENOE <- ENOEData.DB$find('{}')
 
+# Omision y tratamiento de variables
+
+AllDataENOE <- AllDataENOE[AllDataENOE$clase2 <= 3 & 
+                             AllDataENOE$clase2 != 0 & 
+                             AllDataENOE$eda >= 15 & 
+                             AllDataENOE$eda <= 65 &
+                             AllDataENOE$niv_ins <= 4, ]
+
+# Varible dicotomica de desempleo 
+
+AllDataENOE$clase2[AllDataENOE$clase2 == 1] <- 0 # No desempleados
+
+AllDataENOE$clase2[AllDataENOE$clase2 == 2 | DataENOE120$clase2 == 3] <- 1 # Desempleados abiertos
+
+# Variable dicotomica sexo
+
+AllDataENOE$sex[AllDataENOE$sex == 1] <- 0 # Hombre
+
+AllDataENOE$sex[AllDataENOE$sex == 2] <- 1 # Mujer
 
 
-# # PRIMER TRIMESTRE 2020
+# Variable categorica
+
+AllDataENOE$niv_ins <- factor(AllDataENOE$niv_ins)
+
+
+
+# # # # # # PRIMER TRIMESTRE 2020 # # # # # # 
 
 DataENOE120 <- AllDataENOE[AllDataENOE$per == 120, ]
 
-# Caracter?sticas iniciales
+# Caracteristicas iniciales
 
 names(DataENOE120)
 
@@ -182,35 +207,6 @@ str(DataENOE120)
 head(DataENOE120)
 
 summary(DataENOE120)
-
-
-# Omision de variables 
-
-DataENOE120 <- DataENOE120[DataENOE120$clase2 <= 3 & 
-                             DataENOE120$clase2 != 0 & 
-                             DataENOE120$eda >= 15 & 
-                             DataENOE120$eda <= 65 &
-                             DataENOE120$niv_ins <= 4, ]
-
-summary(DataENOE120)
-
-# Varible dicotomica de desempleo 
-
-DataENOE120$clase2[DataENOE120$clase2 == 1] <- 0 # No desempleados
-
-DataENOE120$clase2[DataENOE120$clase2 == 2 | DataENOE120$clase2 == 3] <- 1 # Desempleados abiertos
-
-# Variable dicotomica sexo
-
-DataENOE120$sex[DataENOE120$sex == 1] <- 0 # Hombre
-
-DataENOE120$sex[DataENOE120$sex == 2] <- 1 # Mujer
-
-
-# Variable categ?rica
-
-DataENOE120$niv_ins <- factor(DataENOE120$niv_ins)
-
 
 # Logistic regression
 
@@ -253,7 +249,7 @@ probdec120n<- within(probdec120n, {
 
 probdec120n
 
-# Gr?fica de probabilidades 
+# Grafica de probabilidades 
 
 ggplotly(ggplot(probdec120n, aes(x = eda, y = PredictedProb))+ ggtitle("Desempleo abierto 2020.1") + geom_ribbon(aes(ymin = LL, 
       ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
@@ -269,7 +265,7 @@ with(mylogit120, pchisq(null.deviance - deviance, df.null - df.residual, lower.t
     # pvalue: 0, se recha la hip?tesis nula
 
 
-# # SEGUNDO TRIMESTRE 2020
+# # # # # # SEGUNDO TRIMESTRE 2020 # # # # # # 
 
 DataENOE220 <- AllDataENOE[AllDataENOE$per == 220, ]
 
@@ -282,35 +278,6 @@ str(DataENOE220)
 head(DataENOE220)
 
 summary(DataENOE220)
-
-
-# Omision de variables 
-
-DataENOE220 <- DataENOE220[DataENOE220$clase2 <= 3 & 
-                             DataENOE220$clase2 != 0 & 
-                             DataENOE220$eda >= 15 & 
-                             DataENOE220$eda <= 65 &
-                             DataENOE220$niv_ins <= 4, ]
-
-summary(DataENOE220)
-
-# Varible dicotomica de desempleo 
-
-DataENOE220$clase2[DataENOE220$clase2 == 1] <- 0 # No desempleados
-
-DataENOE220$clase2[DataENOE220$clase2 == 2 | DataENOE220$clase2 == 3] <- 1 # Desempleados abiertos
-
-# Variable dicotomica sexo
-
-DataENOE220$sex[DataENOE220$sex == 1] <- 0 # Hombre
-
-DataENOE220$sex[DataENOE220$sex == 2] <- 1 # Mujer
-
-
-# Variable categ?rica
-
-DataENOE220$niv_ins <- factor(DataENOE220$niv_ins)
-
 
 # Logistic regression
 
@@ -353,7 +320,7 @@ probdec220n<- within(probdec220n, {
 
 probdec220n
 
-# Gr?fica de probabilidades 
+# Grafica de probabilidades 
 
 ggplotly(ggplot(probdec220n, aes(x = eda, y = PredictedProb)) + ggtitle("Desempleo abierto 2020.2") + geom_ribbon(aes(ymin = LL, 
                                                                        ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
@@ -370,7 +337,7 @@ with(mylogit220, pchisq(null.deviance - deviance, df.null - df.residual, lower.t
     # pvalue: 0, se recha la hip?tesis nula
 
 
-# # TERCER TRIMESTRE 2020
+# # # # # # TERCER TRIMESTRE 2020 # # # # # # 
 
 DataENOE320 <- AllDataENOE[AllDataENOE$per == 320, ]
 
@@ -383,35 +350,6 @@ str(DataENOE320)
 head(DataENOE320)
 
 summary(DataENOE320)
-
-
-# Omision de variables 
-
-DataENOE320 <- DataENOE320[DataENOE320$clase2 <= 3 & 
-                             DataENOE320$clase2 != 0 & 
-                             DataENOE320$eda >= 15 & 
-                             DataENOE320$eda <= 65 &
-                             DataENOE320$niv_ins <= 4, ]
-
-summary(DataENOE320)
-
-# Varible dicotomica de desempleo 
-
-DataENOE320$clase2[DataENOE320$clase2 == 1] <- 0 # No desempleados
-
-DataENOE320$clase2[DataENOE320$clase2 == 2 | DataENOE320$clase2 == 3] <- 1 # Desempleados abiertos
-
-# Variable dicotomica sexo
-
-DataENOE320$sex[DataENOE320$sex == 1] <- 0 # Hombre
-
-DataENOE320$sex[DataENOE320$sex == 2] <- 1 # Mujer
-
-
-# Variable categ?rica
-
-DataENOE320$niv_ins <- factor(DataENOE320$niv_ins)
-
 
 # Logistic regression
 
@@ -454,7 +392,7 @@ probdec320n<- within(probdec320n, {
 
 probdec320n
 
-# Gr?fica de probabilidades 
+# Grafica de probabilidades 
 
 ggplotly(ggplot(probdec320n, aes(x = eda, y = PredictedProb)) + ggtitle("Desempleo abierto 2020.3") + geom_ribbon(aes(ymin = LL, 
                                                                        ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
@@ -470,24 +408,8 @@ with(mylogit320, pchisq(null.deviance - deviance, df.null - df.residual, lower.t
     # Ho: Linear regression better than logistic regression
     # Pvalue: 0, se recha la hip?tesis nula
 
+##################################### FIN : ENOE #####################################
 
-
-# LO QUE FALTA
-
-# Primer trimestre (sin restricciones)
-# Segundo y tercer trimestre (con restricciones por COVID)
-
-## Random forest
-## Modelo Bayesiano (opcional)
-
-## (Pensamiento al aire) Comparaci?n entre variables antes del COVID (restricciones) y con COVID
-
-#### Dashboard ####
-## Indicadores propuestos por municipio (en mapa) de forma descriptiva
-
-## Gr?ficos modelo "logit"
-
-## Ingresar datos para generar predicci?n
 
 ####  Visualizaciones sobre resultados del modelo y justificar la importancia del proyecto.
 # Empleo en México 2019 - 2020
