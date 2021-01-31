@@ -23,7 +23,7 @@ setwd(path)
 ################################# Carga Inicial: Inicio #################################
 ## ADVERTENCIA: Este carga se debe ejecutar una sola vez, debido a que la informaci?n 
 ## ya se encuentra disponible en la base de datos MongoDB para fines de este proyecto a 
-# fecha corte Diciembre 2020.En caso de hacer pruebas, cambiar url path de conexi?n.
+## fecha corte Diciembre 2020.En caso de hacer pruebas, cambiar url path de conexi?n.
 ## Ninguna de las variables definidas en esta secci?n se deben considerar para an?lisis 
 ## posteriores (especialmente data frames).
 

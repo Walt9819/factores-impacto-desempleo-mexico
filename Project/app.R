@@ -15,6 +15,10 @@ if (skin == "")
 imssDatamx.DB <- mongo(db="bedu18", collection="datamx_imss", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
 imssData <- imssDatamx.DB$find('{}')
 
+ENOEData.DB <- mongo(db="bedu18", collection="data_enoe", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
+AllDataENOE <- ENOEData.DB$find('{"$and": [{ "clase2" : {"$ne": 0}}, {"clase2": {"$lte": 3}}, {"eda": {"$gte": 15}}, {"eda": {"$lte": 65}}, {"niv_ins": {"$lte": 4}}]}')
+## {"cut" : "Premium", "price" : { "$lt" : 1000 } }
+
 sidebar <- dashboardSidebar(
   # sidebarSearchForm(label = "Search...", "searchText", "searchButton"),
   sidebarMenu(
@@ -43,6 +47,23 @@ body <- dashboardBody(
                 height = 300,
                 width = "100%"
               )
+            ),
+            
+            fluidRow(
+              box(
+                title = "Desempleo abierto 2020 Trimestre I",
+                status = "primary",
+                plotlyOutput("regLogit", height = 400),
+                height = 460
+              ),
+              
+              box(
+                title = "Desempleo abierto 2020 Trimestre II",
+                status = "primary",
+                plotlyOutput("regLogit2", height = 400),
+                height = 460
+              )
+              # regLogit2
             ),
             
             fluidRow(
@@ -221,6 +242,183 @@ server <- function(input, output) {
     
   })
   
+  output$regLogit <- renderPlotly({
+    DataENOE120 <- AllDataENOE[AllDataENOE$per == 120, ]
+    
+    # Caracter?sticas iniciales
+    
+    # names(DataENOE120)
+    
+    # str(DataENOE120)
+    
+    # head(DataENOE120)
+    
+    # summary(DataENOE120)
+    
+    
+    # Omision de variables 
+    
+    # DataENOE120 <- DataENOE120[DataENOE120$clase2 <= 3 & 
+    #                              DataENOE120$clase2 != 0 & 
+    #                              DataENOE120$eda >= 15 & 
+    #                              DataENOE120$eda <= 65 &
+    #                              DataENOE120$niv_ins <= 4, ]
+    
+    # summary(DataENOE120)
+    
+    # Varible dicotomica de desempleo 
+    
+    DataENOE120$clase2[DataENOE120$clase2 == 1] <- 0 # No desempleados
+    
+    DataENOE120$clase2[DataENOE120$clase2 == 2 | DataENOE120$clase2 == 3] <- 1 # Desempleados abiertos
+    
+    # Variable dicotomica sexo
+    
+    DataENOE120$sex[DataENOE120$sex == 1] <- 0 # Hombre
+    
+    DataENOE120$sex[DataENOE120$sex == 2] <- 1 # Mujer
+    
+    
+    # Variable categ?rica
+    
+    DataENOE120$niv_ins <- factor(DataENOE120$niv_ins)
+    
+    
+    # Logistic regression
+    
+    mylogit120 <- glm(clase2 ~ sex + eda + niv_ins, data = DataENOE120, family = "binomial")
+    
+    # summary(mylogit120)
+    
+    # Prueba de Wald: Para saber el efecto de la variable categ?rica
+    
+    # wald.test(b = coef(mylogit120), Sigma = vcov(mylogit120), Terms = 4:6)
+    
+    # H0: El efecto de la variable categ?rica no es estad?sticamente significativo
+    # Resultado: Pvalue< 0.05, por tanto, se rechaza H0.
+    
+    # Radios de probabilidad e intervalos de confianza al 95%
+    
+    # exp(cbind(OR = coef(mylogit120), confint(mylogit120)))
+    
+    # Calculo de probabilidades
+    
+    probmean120 <- with(DataENOE120, data.frame(sex = mean(sex), eda = mean(eda), niv_ins = factor(1:4)))
+    
+    probmean120$niv_insP <- predict(mylogit120, newdata = probmean120, type = "response")
+    
+    probmean120
+    
+    mean(probmean120$niv_insP)
+    # Probabilidad de estar desempleado a nivel nacional: 0.1117514
+    
+    probdec120 <- with(DataENOE120, data.frame(sex = mean(sex), eda = rep(seq(from = 15, to = 65, length.out = 10),
+                                                                          4), niv_ins = factor(rep(1:4, each = 10))))
+    
+    probdec120n <- cbind(probdec120, predict(mylogit120, newdata = probdec120, type = "link",
+                                             se = TRUE))
+    probdec120n<- within(probdec120n, {
+      PredictedProb <- plogis(fit)
+      LL <- plogis(fit - (1.96 * se.fit))
+      UL <- plogis(fit + (1.96 * se.fit))
+    })
+    
+    probdec120n
+    
+    # Gr?fica de probabilidades 
+    
+    ggplotly(ggplot(probdec120n, aes(x = eda, y = PredictedProb)) + geom_ribbon(aes(ymin = LL, ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
+    
+  })
+  
+  output$regLogit2 <- renderPlotly({
+    DataENOE120 <- AllDataENOE[AllDataENOE$per == 220, ]
+    
+    # Caracter?sticas iniciales
+    
+    # names(DataENOE120)
+    
+    # str(DataENOE120)
+    
+    # head(DataENOE120)
+    
+    # summary(DataENOE120)
+    
+    
+    # Omision de variables 
+    
+    # DataENOE120 <- DataENOE120[DataENOE120$clase2 <= 3 & 
+    #                              DataENOE120$clase2 != 0 & 
+    #                              DataENOE120$eda >= 15 & 
+    #                              DataENOE120$eda <= 65 &
+    #                              DataENOE120$niv_ins <= 4, ]
+    
+    # summary(DataENOE120)
+    
+    # Varible dicotomica de desempleo 
+    
+    DataENOE120$clase2[DataENOE120$clase2 == 1] <- 0 # No desempleados
+    
+    DataENOE120$clase2[DataENOE120$clase2 == 2 | DataENOE120$clase2 == 3] <- 1 # Desempleados abiertos
+    
+    # Variable dicotomica sexo
+    
+    DataENOE120$sex[DataENOE120$sex == 1] <- 0 # Hombre
+    
+    DataENOE120$sex[DataENOE120$sex == 2] <- 1 # Mujer
+    
+    
+    # Variable categ?rica
+    
+    DataENOE120$niv_ins <- factor(DataENOE120$niv_ins)
+    
+    
+    # Logistic regression
+    
+    mylogit120 <- glm(clase2 ~ sex + eda + niv_ins, data = DataENOE120, family = "binomial")
+    
+    # summary(mylogit120)
+    
+    # Prueba de Wald: Para saber el efecto de la variable categ?rica
+    
+    # wald.test(b = coef(mylogit120), Sigma = vcov(mylogit120), Terms = 4:6)
+    
+    # H0: El efecto de la variable categ?rica no es estad?sticamente significativo
+    # Resultado: Pvalue< 0.05, por tanto, se rechaza H0.
+    
+    # Radios de probabilidad e intervalos de confianza al 95%
+    
+    # exp(cbind(OR = coef(mylogit120), confint(mylogit120)))
+    
+    # Calculo de probabilidades
+    
+    probmean120 <- with(DataENOE120, data.frame(sex = mean(sex), eda = mean(eda), niv_ins = factor(1:4)))
+    
+    probmean120$niv_insP <- predict(mylogit120, newdata = probmean120, type = "response")
+    
+    probmean120
+    
+    mean(probmean120$niv_insP)
+    # Probabilidad de estar desempleado a nivel nacional: 0.1117514
+    
+    probdec120 <- with(DataENOE120, data.frame(sex = mean(sex), eda = rep(seq(from = 15, to = 65, length.out = 10),
+                                                                          4), niv_ins = factor(rep(1:4, each = 10))))
+    
+    probdec120n <- cbind(probdec120, predict(mylogit120, newdata = probdec120, type = "link",
+                                             se = TRUE))
+    probdec120n<- within(probdec120n, {
+      PredictedProb <- plogis(fit)
+      LL <- plogis(fit - (1.96 * se.fit))
+      UL <- plogis(fit + (1.96 * se.fit))
+    })
+    
+    probdec120n
+    
+    # Gr?fica de probabilidades 
+    
+    ggplotly(ggplot(probdec120n, aes(x = eda, y = PredictedProb)) + geom_ribbon(aes(ymin = LL, ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
+    
+  })
   
 }
 
