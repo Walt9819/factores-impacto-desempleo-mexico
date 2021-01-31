@@ -179,7 +179,7 @@ AllDataENOE <- AllDataENOE[AllDataENOE$clase2 <= 3 &
 
 AllDataENOE$clase2[AllDataENOE$clase2 == 1] <- 0 # No desempleados
 
-AllDataENOE$clase2[AllDataENOE$clase2 == 2 | DataENOE120$clase2 == 3] <- 1 # Desempleados abiertos
+AllDataENOE$clase2[AllDataENOE$clase2 == 2 | AllDataENOE$clase2 == 3] <- 1 # Desempleados abiertos
 
 # Variable dicotomica sexo
 
