@@ -1,8 +1,17 @@
 # Equipo 18
 
-Carpeta con postworks y proyecto del equipo 18 del módulo 2
+BEDU - Santander: Módulo 2. Programación y Estadística con R
 
-### Postworks
+Carpeta con postworks y proyecto del equipo 18
+
+**Integrantes:**
+- Irene López
+- Laura Lozano
+- Enrique Rodríguez
+- Walter Rosales
+
+
+## Postworks
 <details><summary>Índice</summary>
   
 |Postwork|Recursos|
@@ -17,4 +26,4 @@ Carpeta con postworks y proyecto del equipo 18 del módulo 2
 
 </details>
 
-### Factores de Impacto en el Desempleo y la Recuperación Económica en México
+## Factores de Impacto en el Desempleo y la Recuperación Económica en México
