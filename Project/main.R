@@ -663,9 +663,26 @@ monthCovImss.nacional <- monthCovidImss.data %>% dplyr::group_by(idmes) %>%
 
 monthCovImss.nacional <- monthCovImss.nacional %>% mutate(monYear = as.Date(as.yearmon(idmes, format="%Y%m")))
 
+
+### Este gráfico CONSIDERO que puede ir dentro del dashboard (lástima que acabe en Oct-2020, pero los datos del IMSS no dan más :( )
 # Gráfico con tasa de empleabilidad 
-plot_ly(data = monthCovImss.nacional, x = ~monYear, y = ~tasa, mode = 'lines', line = list(color = 'rgb(205, 12, 24)', width = 4)) %>% 
-  layout(title = "Tasa de empleabilidad en México 2019 - 2020", xaxis = list(title = ""), yaxis = list (title = "Tasa empleabilidad"))
+ay1 <- list(
+  tickfont = list(color = "red"),
+  overlaying = "y",
+  side = "right",
+  title = "Tasa empleabilidad"
+)
+
+ay2 <- list(
+  tickfont = list(color = "red"),
+  overlaying = "y",
+  side = "right",
+  title = "Promedio casos diarios confirmados COVID-19"
+)
+
+fig_imsscovid <- monthCovImss.nacional %>% plot_ly() %>% add_lines(x = ~monYear, y = ~tasa, name='') %>% add_lines(x = ~monYear, y = ~casos, name='', yaxis = "y2") %>% layout(title = "Tasa de empleabilidad por mes", yaxis1 = ay1, yaxis2 = ay2,xaxis = list(title=""))
+fig_imsscovid
+
 
 
 names(monthCovidImss.data)
@@ -680,10 +697,12 @@ trainCovImss.data <- monthCovidImss.data %>% dplyr::mutate(mun = as.factor(imun)
                                             dplyr::select(mun, casos, muertes, hosp, tasa)
 
 
-pairs(trainCovImss.data[, 2:6], pch = 19, lower.panel = NULL) # data plot
+### Ya está como png en `/Project/Pairs_Covid_Imss.png`
+#pairs(trainCovImss.data[, 2:6], pch = 19, lower.panel = NULL) # data plot
 
 # Working on this
-covImss.lm <- lm(tasa ~ . - imun, trainCovImss.data)
+covImss.lm <- lm(tasa ~ . - imun - mun, trainCovImss.data) # bad results
+covImss.lm2 <- lm(tasa ~ cases, trainCovImss.data) # bad R^2
 
 #=============================================================================================
 
