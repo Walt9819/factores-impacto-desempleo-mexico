@@ -5,6 +5,9 @@ library(tidyr)
 library(zoo)
 library(ggplot2)
 library(shiny)
+library(dplyr)
+# library(ISLR)
+library(aod)
 
 # á a
 # ó o
@@ -263,12 +266,6 @@ body <- dashboardBody(
               box(
                 width = "100%",
                 verbatimTextOutput("wald")
-              )
-            ),
-            fluidRow(
-              box(
-                width = "100%",
-                verbatimTextOutput("coefconfint")
               )
             )
             
