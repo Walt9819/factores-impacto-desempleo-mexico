@@ -626,7 +626,7 @@ server <- function(input, output, session) {
       title = "Promedio casos diarios confirmados COVID-19"
     )
     
-    fig_imsscovid <- monthCovImss.nacional %>% plot_ly() %>% add_lines(x = ~monYear, y = ~tasa, name='') %>% add_lines(x = ~monYear, y = ~casos, name='', yaxis = "y2") %>% layout(title = "Tasa de empleabilidad por mes", xaxis = "Tasa empleabilidad", yaxis1 = ay1, yaxis2 = ay2,xaxis = list(title=""))
+    fig_imsscovid <- monthCovImss.nacional %>% plot_ly() %>% add_lines(x = ~monYear, y = ~tasa, name='') %>% add_lines(x = ~monYear, y = ~casos, name='', yaxis = "y2") %>% layout(xaxis = "Tasa empleabilidad", yaxis1 = ay1, yaxis2 = ay2,xaxis = list(title=""))
     fig_imsscovid
   })
   
