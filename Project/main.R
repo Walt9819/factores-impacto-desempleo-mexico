@@ -53,6 +53,11 @@ colnames(data_enoe) <- c("cve_ent", "cve_mun", "sex", "eda", "niv_ins", "rama", 
 
 # Se omiten valores NaN dentro de la base de datos.
 data_enoe <- na.omit(data_enoe)
+data_enoe <- data_enoe[data_enoe$clase2 <= 3 & 
+                         data_enoe$clase2 != 0 & 
+                         data_enoe$eda >= 15 & 
+                         data_enoe$eda <= 65 &
+                         data_enoe$niv_ins <= 4, ]
 
 # Se establece una conexi?n a MongoDB y se cargan todos los datos en la colecci?n 'data_enoe'
 mongo <- mongo(collection = "data_enoe", db = "bedu18", url = url_path, verbose = TRUE)
@@ -110,6 +115,10 @@ data_covid[,5:7] <- sapply(data_covid[, 5:7], as.numeric)
 mongo <- mongo(collection = "datamx_covid", db = "bedu18", url = url_path, verbose = TRUE)
 mongo$insert(data_covid[,c(1:2,4:7)])
 
+write.csv(data_enoe, "data_enoe.csv", row.names = FALSE)
+write.csv(data_imss, "data_imss.csv", row.names = FALSE)
+write.csv(data_covid, "data_covid.csv", row.names = FALSE)
+
 
 ## Integraci?n de datos para IMSS y COVID por municipio y fecha
 # Para no perder resoluci?n en la calidad de los datos se ejecuta un inner join a la izquierda.
@@ -142,6 +151,7 @@ data_imss_covid[,3:8] <- sapply(data_imss_covid[, 3:8], as.numeric)
 mongo <- mongo(collection = "datamx_imss_covid", db = "bedu18", url = url_path, verbose = TRUE)
 mongo$insert(data_imss_covid)
 
+write.csv(data_imss_covid, "data_imss_covid.csv", row.names = FALSE)
 ################################# Carga Inicial: Fin #################################
 
 #### Lectura de datos ####
@@ -165,7 +175,7 @@ imssCovid <- imssCovid.DB$find('{}')
 
 ENOEData.DB <- mongo(db="bedu18", collection="data_enoe", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
 
-AllDataENOE <- ENOEData.DB$find('{}')
+AllDataENOE <- ENOEData.DB$find('{"$and": [{ "clase2" : {"$ne": 0}}, {"clase2": {"$lte": 3}}, {"eda": {"$gte": 15}}, {"eda": {"$lte": 65}}, {"niv_ins": {"$lte": 4}}]}')
 
 # Omision y tratamiento de variables
 
