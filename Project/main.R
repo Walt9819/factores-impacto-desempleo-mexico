@@ -494,7 +494,7 @@ monthCovImss.nacional <- monthCovidImss.data %>% dplyr::group_by(idmes) %>%
 # x character string is not in a standard unambiguous format
 # i Input `monYear` is `as.Date(as.yearmon(idmes, format = "%Y%m"))`.
 # Run `rlang::last_error()` to see where the error occurred.
-monthCovImss.nacional <- monthCovImss.nacional %>% mutate(monYear = as.Date(as.yearmon(as.character(idmes), format="%Y%m")))
+monthCovImss.nacional <- monthCovImss.nacional %>% dplyr::mutate(monYear = as.Date(as.yearmon(as.character(idmes), format="%Y%m")))
 write.csv(monthCovImss.nacional, "monthcovimss_nacional.csv", row.names = FALSE)
 write.csv(monthCovidImss.data, "monthcovidimss_data.csv", row.names = FALSE)
 
