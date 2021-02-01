@@ -67,6 +67,9 @@ allImssCovidData <- read.csv("data/data_imss_covid.csv", header = TRUE)
 # head(allCovidData)
 
 allCovidData <- read.csv("data/data_covid.csv", header = TRUE) 
+monthCovImss.nacional <- read.csv("data/monthcovimss_nacional.csv", header = TRUE) 
+monthCovidImss.data <- read.csv("data/monthcovidimss_data.csv", header = TRUE) 
+
 
 sidebar <- dashboardSidebar(
   # sidebarSearchForm(label = "Search...", "searchText", "searchButton"),
@@ -77,7 +80,8 @@ sidebar <- dashboardSidebar(
     #),
     menuItem("Modelos", icon = icon("bar-chart-o"),
              menuSubItem("Regresión Logística", tabName = "subitem1"),
-             menuSubItem("Regresión Lineal", tabName = "subitem2")
+             menuSubItem("Regresión Lineal", tabName = "subitem2"),
+             menuSubItem("Calculadora de Desempleo", tabName = "subitem3")
     ),
     menuItem("Codigo fuente App", icon = icon("file-code-o"),
              href = "https://github.com/Walt9819/factores-impacto-desempleo-mexico/blob/main/Project/app.R"
@@ -113,7 +117,7 @@ body <- dashboardBody(
                 # width = "100%"
               ),
               box(
-                title = "Numero de asegurados y Casos diarios registrados por COVID-19",
+                title = "Evolución de número de empleados y casos diarios detectados con COVID-19",
                 status = "primary",
                 plotlyOutput("covidimss", height = 400),
                 height = 460
@@ -123,7 +127,7 @@ body <- dashboardBody(
             
             fluidRow(
               box(
-                title = "Datos del ENOE por Genero y Periodo de Registro",
+                title = "Datos del ENOE por género y Periodo de Registro",
                 status = "primary",
                 plotlyOutput("generoperiodo", height = 400),
                 height = 460
@@ -224,24 +228,11 @@ body <- dashboardBody(
                 box(
                   title = "Periodo trimestral: ",
                   solidheader = TRUE, status = "warning",
+                  width = "100%",
                   selectInput("periodo", "",
                               choices = c("Enero-Marzo" = 120, "Abril-Junio" = 220, "Julio-Septiembre" = 320),
                               selected = "120"
                   )
-                ),
-                box(
-                  title = "",
-                  solidheader = TRUE, status = "warning",
-                  numericInput("edad", "Edad: ", value = 15, min = 15, max = 65, step = 1),
-                  selectInput("genero", "Genero: ",
-                              choices = c("Hombre" = 1, "Mujer" = 2),
-                              selected = "1"
-                  ),
-                  selectInput("nivins", "Nivel Educativo: ",
-                              choices = c("Primaria Incompleta" = 1, "Primaria Completa" = 2, "Secundaria Completa" = 3, "Medio superior y superior" = 4),
-                              selected = "1"
-                  ),
-                  
                 )
             ),
             
@@ -249,11 +240,9 @@ body <- dashboardBody(
               box(
                 title = "Desempleo abierto",
                 status = "primary",
+                width = "100%",
                 plotlyOutput("regLogit", height = 400),
                 height = 460
-              ),
-              box(
-                textOutput("probddesempleo")
               )
               
               # box(
@@ -266,22 +255,68 @@ body <- dashboardBody(
             ),
             fluidRow(
               box(
+                width = "100%",
                 verbatimTextOutput("mylogit")
               )
             ),
             fluidRow(
               box(
+                width = "100%",
                 verbatimTextOutput("wald")
               )
             ),
             fluidRow(
               box(
+                width = "100%",
                 verbatimTextOutput("coefconfint")
               )
             )
             
     ),
     tabItem("subitem2",
+            fluidRow(
+              box(
+                title = "Tasa de empleabilidad por mes",
+                status = "primary",
+                width = "100%",
+                plotlyOutput("empleabilidad", height = 400),
+                height = 460
+              )
+            ),
+            
+            fluidRow(
+              box(
+                width = "100%",
+                verbatimTextOutput("mylinreg")
+              )
+            )
+            
+            ),
+    tabItem("subitem3",
+            
+            fluidRow(
+              box(
+                title = "",
+                solidheader = TRUE, status = "warning",
+                numericInput("edad", "Edad: ", value = 15, min = 15, max = 65, step = 1),
+                selectInput("genero", "Genero: ",
+                            choices = c("Hombre" = 1, "Mujer" = 2),
+                            selected = "1"
+                ),
+                selectInput("nivins", "Nivel Educativo: ",
+                            choices = c("Primaria Incompleta" = 1, "Primaria Completa" = 2, "Secundaria Completa" = 3, "Medio superior y superior" = 4),
+                            selected = "1"
+                ),
+                
+              ),
+              box(
+                title = "Probabilidad de Desempleo",
+                solidheader = TRUE,
+                status = "warning",
+                textOutput("probddesempleo"),
+              ),
+              valueBoxOutput("rate", width = 6)
+            )
             
             )
   )
@@ -412,6 +447,22 @@ server <- function(input, output, session) {
     
     return(probdec120n)
   })
+  
+  reglin <- reactive({
+    trainCovImss.data <- monthCovidImss.data %>% dplyr::mutate(mun = as.factor(imun), 
+                                                               casos = casos_diarios_prom, 
+                                                               muertes = muertos_diarios_prom, 
+                                                               hosp = hospitalizados_diarios_prom,
+                                                               tasa = tasa_empleabilidad
+    ) %>% 
+      dplyr::select(mun, casos, muertes, hosp, tasa)
+    
+    # Working on this
+    covImss.lm <- lm(tasa ~ . - mun, trainCovImss.data) # bad results
+    return(covImss.lm)
+  })
+  
+  
   # print(input$spread)
   
   
@@ -544,9 +595,45 @@ server <- function(input, output, session) {
     summary(mylogit())
   })
   
+  output$mylinreg <- renderPrint({
+    summary(reglin())
+  })
+  
   output$probddesempleo <- renderText({
     paste("La probabilidad de estar desempleado en Mexico con tu perfil es: ", probdesempleo()$PredictedProb*100, sep = "")
   })
+  
+  output$rate <- renderValueBox({
+  
+    valueBox(
+      value = formatC(probdesempleo()$PredictedProb*100, digits = 1, format = "f"),
+      subtitle = if (probdesempleo()$PredictedProb*100 >= 50) "Probabilidad alta" else "Probabilidad baja",
+      icon = icon("area-chart"),
+      color = if (probdesempleo()$PredictedProb*100 >= 50) "red" else "green"
+    )
+  })
+  
+  
+  output$empleabilidad <- renderPlotly({
+    ay1 <- list(
+      tickfont = list(color = "red"),
+      overlaying = "y",
+      side = "right",
+      title = "Tasa empleabilidad"
+    )
+    
+    ay2 <- list(
+      tickfont = list(color = "red"),
+      overlaying = "y",
+      side = "right",
+      title = "Promedio casos diarios confirmados COVID-19"
+    )
+    
+    fig_imsscovid <- monthCovImss.nacional %>% plot_ly() %>% add_lines(x = ~monYear, y = ~tasa, name='') %>% add_lines(x = ~monYear, y = ~casos, name='', yaxis = "y2") %>% layout(title = "Tasa de empleabilidad por mes", yaxis1 = ay1, yaxis2 = ay2,xaxis = list(title=""))
+    fig_imsscovid
+  })
+  
+  
   
   
   # output$regLogit2 <- renderPlotly({

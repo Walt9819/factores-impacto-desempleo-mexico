@@ -12,6 +12,7 @@ suppressWarnings(library(tidyr))
 suppressWarnings(library(plotly))
 suppressWarnings(library(zoo))
 suppressWarnings(library(ISLR))
+suppressWarnings(library(stringi))
 
 # Datos de conexi?n a MongoDB
 url_path = 'mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test'
@@ -470,10 +471,12 @@ monthCovid.data <- monthCovid.data %>% dplyr::group_by(imun, idmes) %>%
                     dplyr::summarise(casos_diarios_prom = mean(casos_diarios), muertos_diarios_prom = mean(muertos_diarios), hospitalizados_diarios_prom = mean(hospitalizados_diarios))
 
 # Juntar con los datos de asegurados
+imssData <- read.csv("data/data_imss.csv", header = TRUE)
 monthCovidImss.data <- merge(imssData %>% select(asegurados, imun, idmes), 
                          monthCovid.data,
                          by = c("imun", "idmes"), all.x = TRUE)
 
+# Falto agregar la libreria stringi 
 monthCovidImss.data <- monthCovidImss.data %>% dplyr::filter(substr(stri_reverse(imun), 1, 3) != "999") # eliminar municipios desconocidos (terminan con 999)
 
 # Obtener tasa de cambio en el número de empleos
@@ -486,9 +489,14 @@ monthCovImss.nacional <- monthCovidImss.data %>% dplyr::group_by(idmes) %>%
                            muertes = mean(muertos_diarios_prom),
                            hospitalizados = mean(hospitalizados_diarios_prom)
                            )
-
-monthCovImss.nacional <- monthCovImss.nacional %>% mutate(monYear = as.Date(as.yearmon(idmes, format="%Y%m")))
-
+# Marca error con yearmon, se tuvo agregar as.character
+# Error: Problem with `mutate()` input `monYear`.
+# x character string is not in a standard unambiguous format
+# i Input `monYear` is `as.Date(as.yearmon(idmes, format = "%Y%m"))`.
+# Run `rlang::last_error()` to see where the error occurred.
+monthCovImss.nacional <- monthCovImss.nacional %>% mutate(monYear = as.Date(as.yearmon(as.character(idmes), format="%Y%m")))
+write.csv(monthCovImss.nacional, "monthcovimss_nacional.csv", row.names = FALSE)
+write.csv(monthCovidImss.data, "monthcovidimss_data.csv", row.names = FALSE)
 
 ### Este gráfico CONSIDERO que puede ir dentro del dashboard (lástima que acabe en Oct-2020, pero los datos del IMSS no dan más :( )
 # Gráfico con tasa de empleabilidad 
@@ -528,7 +536,8 @@ trainCovImss.data <- monthCovidImss.data %>% dplyr::mutate(mun = as.factor(imun)
 
 # Working on this
 covImss.lm <- lm(tasa ~ . - imun - mun, trainCovImss.data) # bad results
-covImss.lm2 <- lm(tasa ~ cases, trainCovImss.data) # bad R^2
+summary(covImss.lm)
+# covImss.lm2 <- lm(tasa ~ cases, trainCovImss.data) # bad R^2
 
 #=============================================================================================
 
