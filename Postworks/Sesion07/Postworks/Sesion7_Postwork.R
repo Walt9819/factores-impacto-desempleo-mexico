@@ -52,7 +52,9 @@ real_madrid <- GamesData.DB$find('{ "Date" : "2015-12-20", "$or": [ {"HomeTeam" 
 
 print(real_madrid)
 
-    # No existen registros de juegos del Real Madrid para esa fecha
+    # No existen registros de juegos del Real Madrid para esa fecha, por lo cual se sugiere agregar los registros faltantes para 
+    # poder realizar consultas relativas a esos dichos.
+
 
 # 4. Por último, no olvides cerrar la conexión con la BDD
 
