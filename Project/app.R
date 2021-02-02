@@ -428,7 +428,9 @@ server <- function(input, output, session) {
     
     # Variable categ?rica
     
-    DataENOE120$niv_ins <- factor(DataENOE120$niv_ins)
+    DataENOE120$niv_ins <- factor(DataENOE120$niv_ins, levels=c(1, 2, 3, 4),
+                                labels = c('Primaria incompleta','Primaria completa','Secundaria incompleta', 'Medio superior y superior'))
+
     
     return(DataENOE120)
     
