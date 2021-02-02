@@ -277,6 +277,16 @@ body <- dashboardBody(
     tabItem("subitem2",
             fluidRow(
               box(
+                title = "Ajuste de la tasa de empleabilidad en función del promedio de los datos diarios producidos por el COVID-19 en México",
+                width = "100%",
+                solidHeader = TRUE,
+                background = "light-blue",
+                "En este modelo se busca conocer si exixte una dependencia del tipo lineal entre los datos crudos directos obtenidos por el impacto del COVID-19 en México. Para ello se hace uso del número de casos, de hospitalizadas y de fallecimientos promedio de forma mensual y se ajusta un modelo lineal."
+              )
+            ), 
+            
+            fluidRow(
+              box(
                 title = "Tasa de empleabilidad por mes",
                 status = "primary",
                 width = "100%",
@@ -289,6 +299,12 @@ body <- dashboardBody(
               box(
                 width = "100%",
                 verbatimTextOutput("mylinreg")
+              )
+            ),
+            fluidRow(
+              box(
+                width = "100%",
+                "En un principio pudiera parecer que los resultados mostrados por el ajuste lineal tienen un alto grado de confidencialidad (al observar los p-values) para todas las variables contempladas en el modelo. Sin embargo, esta sería una observación prematura, ya que el valor de R^2 nos indica que, a pesar de que pudiera haber un alto porcentaje de confidencialidad para atribuir la dependencia lineal en nuestro modelo, este último no es capaz de representar más del 2% de todos los datos utilizados para ajustarlo, lo cual muestra la nula relación existente entre los datos en realidad."
               )
             )
             
