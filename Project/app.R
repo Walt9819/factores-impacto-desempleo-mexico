@@ -6,16 +6,9 @@ library(zoo)
 library(ggplot2)
 library(shiny)
 library(dplyr)
-# library(ISLR)
 library(aod)
 library(leaflet)
 library(rgdal)
-
-# á a
-# ó o
-# í i
-# ú u
-# é e
 
 skin <- Sys.getenv("DASHBOARD_SKIN")
 skin <- tolower(skin)
@@ -85,7 +78,7 @@ sidebar <- dashboardSidebar(
              menuSubItem("Regresión Lineal", tabName = "subitem2"),
              menuSubItem("Calculadora de Desempleo", tabName = "subitem3")
     ),
-    menuItem("Codigo fuente App", icon = icon("file-code-o"),
+    menuItem("Código fuente App", icon = icon("file-code-o"),
              href = "https://github.com/Walt9819/factores-impacto-desempleo-mexico/blob/main/Project/app.R"
     )
   )
@@ -118,6 +111,16 @@ body <- dashboardBody(
                 plotlyOutput("covidimss", height = 400),
                 height = 460
                 # width = "100%"
+              )
+            ),
+            
+            fluidRow(
+              box(
+                title = "Número de casos positivos con COVID-19 por entidad",
+                status = "primary",
+                leafletOutput("mapMexico"),
+                #height = 700,
+                width = "100%"
               )
             ),
             
@@ -156,16 +159,6 @@ body <- dashboardBody(
                 plotlyOutput("edadnivel", height = 400),
                 height = 460
                 # width = "100%"
-              )
-            ),
-            
-            fluidRow(
-              box(
-                title = "Número de casos positivos con COVID-19 por entidad",
-                status = "primary",
-                leafletOutput("mapMexico"),
-                height = 500,
-                width = "100%"
               )
             )
             
@@ -460,14 +453,7 @@ server <- function(input, output, session) {
   
   
   output$regLogit <- renderPlotly({
-    
     enoe_chart4 <- probdec()
-    # Gr?fica de probabilidades 
-    # enoe_chart4 <- enoe_chart4 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '1','Primaria incompleta'))
-    # enoe_chart4 <- enoe_chart4 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '2','Primaria completa'))
-    # enoe_chart4 <- enoe_chart4 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '3','Secundaria completa'))
-    # enoe_chart4 <- enoe_chart4 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '4','Medio superior y superior'))
-    
     ggplotly(ggplot(enoe_chart4, aes(x = eda, y = PredictedProb)) + labs(y="Probabilidad", x = "Edad", fill = "Intervalo de confianza", col = "Nivel educativo") + geom_ribbon(aes(ymin = LL, ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
     
   })
