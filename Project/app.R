@@ -301,10 +301,22 @@ body <- dashboardBody(
                 verbatimTextOutput("mylinreg")
               )
             ),
+            
             fluidRow(
               box(
                 width = "100%",
-                "En un principio pudiera parecer que los resultados mostrados por el ajuste lineal tienen un alto grado de confidencialidad (al observar los p-values) para todas las variables contempladas en el modelo. Sin embargo, esta sería una observación prematura, ya que el valor de R^2 nos indica que, a pesar de que pudiera haber un alto porcentaje de confidencialidad para atribuir la dependencia lineal en nuestro modelo, este último no es capaz de representar más del 2% de todos los datos utilizados para ajustarlo, lo cual muestra la nula relación existente entre los datos en realidad."
+                "En un principio pudiera parecer que los resultados mostrados por el ajuste lineal tienen un alto grado de confidencialidad (al observar los p-values) para todas las variables contempladas en el modelo. Sin embargo, esta sería una observación prematura, ya que el valor de R^2 nos indica que, a pesar de que pudiera haber un alto porcentaje de confidencialidad para atribuir la dependencia lineal en nuestro modelo, este último no es capaz de representar más del 2% de todos los datos utilizados para ajustarlo, lo cual muestra la nula relación existente entre los datos en realidad. A continuación se presenta el diagrama de correlación entre las variables:"
+              )
+            ),
+            
+            fluidRow(
+                img( src = "Pairs_Covid_Imss.png", width = "45%")
+            ),
+            
+            fluidRow(
+              box(
+                width = "50%",
+                "Al analizar este gráfico podemos observar la clara dependencia lineal existente entre casos confirmados, defunciones y hospitalizados. Esto nos lleva a proponer la evidente dependencia entre unos y otros datos, lo cual podría estar relacionado con el alto valor de p-value en el modelo. Estos resultados llevan a proponer que no existe una relación directa entre los números crudos del COVID-19 y la tasa de empleabilidad en nuestro país, o por lo menos no con los datos con los que actualmente se cuenta, de forma que proponemos que existe una relación más compleja entre la tasa de empleabilidad y las repercusiones de la pandemia en México que no es posible describir haciendo uso únicamente de los datos ya mencionados."
               )
             )
             
