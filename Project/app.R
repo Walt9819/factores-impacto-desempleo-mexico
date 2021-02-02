@@ -8,6 +8,8 @@ library(shiny)
 library(dplyr)
 # library(ISLR)
 library(aod)
+library(leaflet)
+library(rgdal)
 
 # á a
 # ó o
@@ -72,15 +74,12 @@ allImssCovidData <- read.csv("data/data_imss_covid.csv", header = TRUE)
 allCovidData <- read.csv("data/data_covid.csv", header = TRUE) 
 monthCovImss.nacional <- read.csv("data/monthcovimss_nacional.csv", header = TRUE) 
 monthCovidImss.data <- read.csv("data/monthcovidimss_data.csv", header = TRUE) 
+mexico <- rgdal::readOGR("data/mexico.json")
 
 
 sidebar <- dashboardSidebar(
-  # sidebarSearchForm(label = "Search...", "searchText", "searchButton"),
   sidebarMenu(
     menuItem("Análisis Exploratorio", tabName = "dashboard", icon = icon("dashboard")),
-    #menuItem("Widgets", icon = icon("th"), tabName = "widgets", badgeLabel = "new",
-    #         badgeColor = "green"
-    #),
     menuItem("Modelos", icon = icon("bar-chart-o"),
              menuSubItem("Regresión Logística", tabName = "subitem1"),
              menuSubItem("Regresión Lineal", tabName = "subitem2"),
@@ -91,12 +90,6 @@ sidebar <- dashboardSidebar(
     )
   )
 )
-
-# á a
-# ó o
-# í i
-# ú u
-# é e
 
 body <- dashboardBody(
   tabItems(
@@ -130,14 +123,14 @@ body <- dashboardBody(
             
             fluidRow(
               box(
-                title = "Datos del ENOE por género y Periodo de Registro",
+                title = "Desempleo abierto por género y trimestre",
                 status = "primary",
                 plotlyOutput("generoperiodo", height = 400),
                 height = 460
                 # width = "100%"
               ),
               box(
-                title = "Datos del ENOE por Periodo y clasificacion del empleo",
+                title = "Población con o sin empleo por trimestre",
                 status = "primary",
                 selectInput("periodografica", "",
                             choices = c("Enero-Marzo" = 120, "Abril-Junio" = 220, "Julio-Septiembre" = 320),
@@ -151,84 +144,32 @@ body <- dashboardBody(
             
             fluidRow(
               box(
-                title = "Datos del ENOE por Nivel educativo",
+                title = "Población económicamente activa y inactiva por nivel educativo",
                 status = "primary",
                 plotlyOutput("niveleduc", height = 400),
                 height = 460
                 # width = "100%"
               ),
               box(
-                title = "Boxplot",
+                title = "Población económicamente activa e inactiva por edad y nivel educativo",
                 status = "primary",
                 plotlyOutput("edadnivel", height = 400),
                 height = 460
                 # width = "100%"
               )
-            )
-      
-            # fluidRow(
-            #   box(
-            #     title = "Distribution",
-            #     status = "primary",
-            #     plotOutput("plot1", height = 240),
-            #     height = 300
-            #   ),
-            #   tabBox(
-            #     height = 300,
-            #     tabPanel("View 1",
-            #              plotOutput("scatter1", height = 230)
-            #     ),
-            #     tabPanel("View 2",
-            #              plotOutput("scatter2", height = 230)
-            #     )
-            #   )
-            # ),
+            ),
             
-            # # Boxes with solid headers
-            # fluidRow(
-            #   box(
-            #     title = "Histogram control", width = 4, solidHeader = TRUE, status = "primary",
-            #     sliderInput("count", "Count", min = 1, max = 500, value = 120)
-            #   ),
-            #   box(
-            #     title = "Appearance",
-            #     width = 4, solidHeader = TRUE,
-            #     radioButtons("fill", "Fill", # inline = TRUE,
-            #                  c(None = "none", Blue = "blue", Black = "black", red = "red")
-            #     )
-            #   ),
-            #   box(
-            #     title = "Scatterplot control",
-            #     width = 4, solidHeader = TRUE, status = "warning",
-            #     selectInput("spread", "Spread",
-            #                 choices = c("0%" = 0, "20%" = 20, "40%" = 40, "60%" = 60, "80%" = 80, "100%" = 100),
-            #                 selected = "60"
-            #     )
-            #   )
-            # ),
-            # 
-            # # Solid backgrounds
-            # fluidRow(
-            #   box(
-            #     title = "Title 4",
-            #     width = 4,
-            #     background = "black",
-            #     "A box with a solid black background"
-            #   ),
-            #   box(
-            #     title = "Title 5",
-            #     width = 4,
-            #     background = "light-blue",
-            #     "A box with a solid light-blue background"
-            #   ),
-            #   box(
-            #     title = "Title 6",
-            #     width = 4,
-            #     background = "maroon",
-            #     "A box with a solid maroon background"
-            #   )
-            #   
-            # )
+            fluidRow(
+              box(
+                title = "Número de casos positivos con COVID-19 por entidad",
+                status = "primary",
+                leafletOutput("mapMexico"),
+                height = 500,
+                width = "100%"
+              )
+            )
+            
+        
     ),
     tabItem("subitem1",
                 fluidRow(
@@ -260,14 +201,6 @@ body <- dashboardBody(
                 plotlyOutput("regLogit", height = 400),
                 height = 460
               )
-              
-              # box(
-              #   title = "Desempleo abierto 2020 Trimestre II",
-              #   status = "primary",
-              #   plotlyOutput("regLogit2", height = 400),
-              #   height = 460
-              # )
-              # regLogit2
             ),
             fluidRow(
               box(
@@ -319,7 +252,7 @@ body <- dashboardBody(
             ),
             
             fluidRow(
-                img( src = "Pairs_Covid_Imss.png", width = "45%")
+                img( src = "Pairs_Covid_Imss.png", width = "100%")
             ),
             
             fluidRow(
@@ -345,13 +278,12 @@ body <- dashboardBody(
                             choices = c("Primaria Incompleta" = 1, "Primaria Completa" = 2, "Secundaria Completa" = 3, "Medio superior y superior" = 4),
                             selected = "1"
                 ),
-                
               ),
               box(
                 title = "Probabilidad de Desempleo",
                 solidheader = TRUE,
                 status = "warning",
-                textOutput("probddesempleo"),
+                textOutput("probddesempleo")
               ),
               valueBoxOutput("rate", width = 6)
             )
@@ -359,57 +291,6 @@ body <- dashboardBody(
             )
   )
 )
- 
-# messages <- dropdownMenu(type = "messages",
-#                          messageItem(
-#                            from = "Sales Dept",
-#                            message = "Sales are steady this month."
-#                          ),
-#                          messageItem(
-#                            from = "New User",
-#                            message = "How do I register?",
-#                            icon = icon("question"),
-#                            time = "13:45"
-#                          ),
-#                          messageItem(
-#                            from = "Support",
-#                            message = "The new server is ready.",
-#                            icon = icon("life-ring"),
-#                            time = "2014-12-01"
-#                          )
-# )
-# 
-# notifications <- dropdownMenu(type = "notifications", badgeStatus = "warning",
-#                               notificationItem(
-#                                 text = "5 new users today",
-#                                 icon("users")
-#                               ),
-#                               notificationItem(
-#                                 text = "12 items delivered",
-#                                 icon("truck"),
-#                                 status = "success"
-#                               ),
-#                               notificationItem(
-#                                 text = "Server load at 86%",
-#                                 icon = icon("exclamation-triangle"),
-#                                 status = "warning"
-#                               )
-# )
-# 
-# tasks <- dropdownMenu(type = "tasks", badgeStatus = "success",
-#                       taskItem(value = 90, color = "green",
-#                                "Documentation"
-#                       ),
-#                       taskItem(value = 17, color = "aqua",
-#                                "Project X"
-#                       ),
-#                       taskItem(value = 75, color = "yellow",
-#                                "Server deployment"
-#                       ),
-#                       taskItem(value = 80, color = "red",
-#                                "Overall project"
-#                       )
-#)
 
 header <- dashboardHeader(
   title = "Desempleo y COVID-19",
@@ -436,14 +317,16 @@ server <- function(input, output, session) {
     
     
     # Variable categ?rica
+    DataENOE120$niv_ins <- factor(DataENOE120$niv_ins)
     
-    DataENOE120$niv_ins <- factor(DataENOE120$niv_ins, levels=c(1, 2, 3, 4),
-                                labels = c('Primaria incompleta','Primaria completa','Secundaria incompleta', 'Medio superior y superior'))
+    # DataENOE120$niv_ins <- factor(DataENOE120$niv_ins, levels=c(1, 2, 3, 4),
+    #                             labels = c('Primaria incompleta','Primaria completa','Secundaria incompleta', 'Medio superior y superior'))
 
     
     return(DataENOE120)
     
   })
+  
   
   mylogit <- reactive({
     # Logistic regression
@@ -502,38 +385,6 @@ server <- function(input, output, session) {
     return(covImss.lm)
   })
   
-  
-  # print(input$spread)
-  
-  
-  # set.seed(122)
-  # histdata <- rnorm(500)
-  # 
-  # output$plot1 <- renderPlot({
-  #   if (is.null(input$count) || is.null(input$fill))
-  #     return()
-  #   
-  #   data <- histdata[seq(1, input$count)]
-  #   color <- input$fill
-  #   if (color == "none")
-  #     color <- NULL
-  #   hist(data, col = color, main = NULL)
-  # })
-  # 
-  # output$scatter1 <- renderPlot({
-  #   spread <- as.numeric(input$spread) / 100
-  #   x <- rnorm(1000)
-  #   y <- x + rnorm(1000) * spread
-  #   plot(x, y, pch = ".", col = "blue")
-  # })
-  # 
-  # output$scatter2 <- renderPlot({
-  #   spread <- as.numeric(input$spread) / 100
-  #   x <- rnorm(1000)
-  #   y <- x + rnorm(1000) * spread
-  #   plot(x, y, pch = ".", col = "red")
-  # })
-  
   output$evolucion <- renderPlotly({
     imssData <- imssData %>% separate(mes, into = c('anio', 'mes'), sep = '-')
     imssData$date_month <-as.Date(as.yearmon(paste(imssData$anio, "/", imssData$mes, sep=""), format="%Y/%m"))
@@ -546,7 +397,6 @@ server <- function(input, output, session) {
     # Donde la tasa de ocupación entre Febrero y Julio del 2020 cayó % perdiendo mas de X millones de puestos formales como informales.
     
     plot_ly(data = data_chart1, x = ~date_month, y = ~asegurados, mode = 'lines', line = list(color = 'rgb(205, 12, 24)', width = 4)) %>% layout(title = "", xaxis = list(title = ""), yaxis = list (title = "Empleados"))
-    #ggplotly(plot1)
     
   })
   
@@ -554,28 +404,22 @@ server <- function(input, output, session) {
     imsscovid_chart1 <- allImssCovidData %>% group_by(mes) %>% summarise(casos = sum(casos_diarios), asegurados = sum(asegurados))
     imsscovid_chart1
     
-    ay1 <- list(
-      tickfont = list(color = "red"),
-      overlaying = "y",
-      side = "right",
-      title = "casos positivos Covid-19"
-    )
-    
     ay2 <- list(
       tickfont = list(color = "red"),
       overlaying = "y",
       side = "right",
-      title = "casos positivos Covid-19"
+      title = "Casos positivos"
     )
     
-    fig_imsscovid1 <- imsscovid_chart1 %>% plot_ly() %>% add_lines(x = ~mes, y = ~asegurados, name='') %>% add_lines(x = ~mes, y = ~casos,name='', yaxis = "y2") %>% layout(title = "", yaxis1 = ay1, yaxis2 = ay2,xaxis = list(title=""))
+    fig_imsscovid1 <- imsscovid_chart1 %>% plot_ly() %>% add_lines(x = ~mes, y = ~asegurados, name='Empleados') %>% add_lines(x = ~mes, y = ~casos, name='Casos positivos', yaxis = "y2") %>% layout(title = "", yaxis = list (title = "Número de empleados"), yaxis2 = ay2, xaxis = list(title="Número del mes"))
     fig_imsscovid1
   })
   
   output$generoperiodo <- renderPlotly({
-    enoe_chart1 <- AllDataENOE %>% filter(niv_ins == 4, clase2 == 2 | clase2 == 3, per != 319) %>% group_by(per,sex) %>% count(sex) %>% mutate(per = as.character(per))
+    # niv_ins == 4, 
+    enoe_chart1 <- AllDataENOE %>% filter(clase2 == 2 | clase2 == 3, per != 319) %>% group_by(per,sex) %>% count(sex) %>% mutate(per = as.character(per))
     enoe_chart1 <- enoe_chart1 %>% mutate(sex = replace(sex,sex==1,'Hombre')) %>% mutate(sex = replace(sex,sex==2,'Mujer'))
-    fig_enoe1 <- enoe_chart1 %>% plot_ly(x = ~per,y = ~n,type = 'bar', split = ~sex)
+    fig_enoe1 <- enoe_chart1 %>% plot_ly(x = ~per,y = ~n,type = 'bar', split = ~sex) %>% layout(yaxis = list(title = "Desempleo abierto"), xaxis = list(title = "Periodo trimestral"))
     fig_enoe1
   })
   
@@ -585,7 +429,7 @@ server <- function(input, output, session) {
     # fig_enoe3 <- enoe_chart3 %>% plot_ly(x = ~per,y = ~n,type = 'bar',split = ~clase2)
     # fig_enoe3
     
-    fig_enoe6 <- enoe_chart3 %>% filter(per == input$periodografica) %>% plot_ly(type = 'pie', labels = ~clase2, values = ~n)
+    fig_enoe6 <- enoe_chart3 %>% filter(per == input$periodografica) %>% plot_ly(type = 'pie', labels = ~clase2, values = ~n) 
     fig_enoe6
     
   })
@@ -601,8 +445,12 @@ server <- function(input, output, session) {
   })
   
   output$edadnivel <- renderPlotly({
-    enoe_chart4 <- AllDataENOE %>% select(eda,niv_ins) %>% group_by(niv_ins)
-    fig_enoe5 <- enoe_chart4 %>% plot_ly(x = ~niv_ins, y = ~eda, type = 'box')
+    enoe_chart4 <- AllDataENOE %>% filter(per != 319) %>% select(eda,niv_ins) %>% group_by(niv_ins)
+    enoe_chart4 <- enoe_chart4 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '1','Primaria incompleta'))
+    enoe_chart4 <- enoe_chart4 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '2','Primaria completa'))
+    enoe_chart4 <- enoe_chart4 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '3','Secundaria completa'))
+    enoe_chart4 <- enoe_chart4 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '4','Medio superior y superior'))
+    fig_enoe5 <- enoe_chart4 %>% plot_ly(x = ~niv_ins, y = ~eda, type = 'box') %>% layout(yaxis = list(title = "Edad"), xaxis = list(title = "Nivel educativo"))
     fig_enoe5
   })
   
@@ -613,10 +461,14 @@ server <- function(input, output, session) {
   
   output$regLogit <- renderPlotly({
     
-    
+    enoe_chart4 <- probdec()
     # Gr?fica de probabilidades 
+    # enoe_chart4 <- enoe_chart4 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '1','Primaria incompleta'))
+    # enoe_chart4 <- enoe_chart4 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '2','Primaria completa'))
+    # enoe_chart4 <- enoe_chart4 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '3','Secundaria completa'))
+    # enoe_chart4 <- enoe_chart4 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '4','Medio superior y superior'))
     
-    ggplotly(ggplot(probdec(), aes(x = eda, y = PredictedProb)) + labs(y="Probabilidad", x = "Edad", fill = "Intervalo de confianza", col = "Nivel educativo") + geom_ribbon(aes(ymin = LL, ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
+    ggplotly(ggplot(enoe_chart4, aes(x = eda, y = PredictedProb)) + labs(y="Probabilidad", x = "Edad", fill = "Intervalo de confianza", col = "Nivel educativo") + geom_ribbon(aes(ymin = LL, ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
     
   })
   
@@ -644,8 +496,12 @@ server <- function(input, output, session) {
   })
   
   output$probddesempleo <- renderText({
-    paste("La probabilidad de estar desempleado en México con tu perfil es: ", probdesempleo()$PredictedProb*100, sep = "")
+    paste("La probabilidad de estar desempleado en México en el trimestre ", input$periodo," con tu perfil es: ", probdesempleo()$PredictedProb*100, "\n(Nota: Se puede modificar el trimestre en la pestaña de regresión logística)", sep = "")
   })
+  
+  # output$trimestre <- renderText({
+  #   paste("El modelo corresponde al trimestre: ", input$periodo, sep = )
+  # })
   
   output$rate <- renderValueBox({
   
@@ -670,105 +526,33 @@ server <- function(input, output, session) {
       tickfont = list(color = "red"),
       overlaying = "y",
       side = "right",
-      title = "Promedio casos diarios confirmados COVID-19"
+      title = "Promedio confirmados"
     )
     
-    fig_imsscovid <- monthCovImss.nacional %>% plot_ly() %>% add_lines(x = ~monYear, y = ~tasa, name='') %>% add_lines(x = ~monYear, y = ~casos, name='', yaxis = "y2") %>% layout(yaxis1 = ay1, yaxis2 = ay2, xaxis = list(title=""))
+    fig_imsscovid <- monthCovImss.nacional %>% plot_ly() %>% add_lines(x = ~monYear, y = ~tasa, name='Tasa de empleabilidad') %>% add_lines(x = ~monYear, y = ~casos, name='Promedio de casos diarios', yaxis = "y2") %>% layout(yaxis = list(title = "Tasa"), yaxis1 = ay1, yaxis2 = ay2, xaxis = list(title=""))
 
     fig_imsscovid
   })
   
+  output$mapMexico <- renderLeaflet({
+    allCovidData$cve_ent <- substr(allCovidData$imun,1,nchar(allCovidData$imun)-3)
+    
+    covid_chart1 <- allCovidData %>% group_by(cve_ent) %>% summarise(casos = sum(casos_diarios))
+    covid_chart1 <- na.omit(covid_chart1)
+    covid_chart1$fips <- sprintf("%02d", as.numeric(covid_chart1$cve_ent))
+    covid_chart1$fips <- paste0("MX", covid_chart1$fips)
+    
+    mapamexico <- merge(mexico, covid_chart1, by = "fips")
+    pal <- colorNumeric("viridis", NULL)
+    
+    leaflet(mapamexico) %>%
+      addTiles() %>%
+      addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1, fillColor = ~pal(log10(casos)),
+    label = ~paste0(name, ": ", formatC(casos, big.mark = ","))) %>%
+    addLegend(pal = pal, values = ~log10(casos), opacity = 1.0,
+              labFormat = labelFormat(transform = function(x) round(10^x)))
   
-  
-  
-  # output$regLogit2 <- renderPlotly({
-  #   DataENOE120 <- AllDataENOE[AllDataENOE$per == 220, ]
-  #   
-  #   # Caracter?sticas iniciales
-  #   
-  #   # names(DataENOE120)
-  #   
-  #   # str(DataENOE120)
-  #   
-  #   # head(DataENOE120)
-  #   
-  #   # summary(DataENOE120)
-  #   
-  #   
-  #   # Omision de variables 
-  #   
-  #   # DataENOE120 <- DataENOE120[DataENOE120$clase2 <= 3 & 
-  #   #                              DataENOE120$clase2 != 0 & 
-  #   #                              DataENOE120$eda >= 15 & 
-  #   #                              DataENOE120$eda <= 65 &
-  #   #                              DataENOE120$niv_ins <= 4, ]
-  #   
-  #   # summary(DataENOE120)
-  #   
-  #   # Varible dicotomica de desempleo 
-  #   
-  #   DataENOE120$clase2[DataENOE120$clase2 == 1] <- 0 # No desempleados
-  #   
-  #   DataENOE120$clase2[DataENOE120$clase2 == 2 | DataENOE120$clase2 == 3] <- 1 # Desempleados abiertos
-  #   
-  #   # Variable dicotomica sexo
-  #   
-  #   DataENOE120$sex[DataENOE120$sex == 1] <- 0 # Hombre
-  #   
-  #   DataENOE120$sex[DataENOE120$sex == 2] <- 1 # Mujer
-  #   
-  #   
-  #   # Variable categ?rica
-  #   
-  #   DataENOE120$niv_ins <- factor(DataENOE120$niv_ins)
-  #   
-  #   
-  #   # Logistic regression
-  #   
-  #   mylogit120 <- glm(clase2 ~ sex + eda + niv_ins, data = DataENOE120, family = "binomial")
-  #   
-  #   # summary(mylogit120)
-  #   
-  #   # Prueba de Wald: Para saber el efecto de la variable categ?rica
-  #   
-  #   # wald.test(b = coef(mylogit120), Sigma = vcov(mylogit120), Terms = 4:6)
-  #   
-  #   # H0: El efecto de la variable categ?rica no es estad?sticamente significativo
-  #   # Resultado: Pvalue< 0.05, por tanto, se rechaza H0.
-  #   
-  #   # Radios de probabilidad e intervalos de confianza al 95%
-  #   
-  #   # exp(cbind(OR = coef(mylogit120), confint(mylogit120)))
-  #   
-  #   # Calculo de probabilidades
-  #   
-  #   probmean120 <- with(DataENOE120, data.frame(sex = mean(sex), eda = mean(eda), niv_ins = factor(1:4)))
-  #   
-  #   probmean120$niv_insP <- predict(mylogit120, newdata = probmean120, type = "response")
-  #   
-  #   probmean120
-  #   
-  #   mean(probmean120$niv_insP)
-  #   # Probabilidad de estar desempleado a nivel nacional: 0.1117514
-  #   
-  #   probdec120 <- with(DataENOE120, data.frame(sex = mean(sex), eda = rep(seq(from = 15, to = 65, length.out = 10),
-  #                                                                         4), niv_ins = factor(rep(1:4, each = 10))))
-  #   
-  #   probdec120n <- cbind(probdec120, predict(mylogit120, newdata = probdec120, type = "link",
-  #                                            se = TRUE))
-  #   probdec120n<- within(probdec120n, {
-  #     PredictedProb <- plogis(fit)
-  #     LL <- plogis(fit - (1.96 * se.fit))
-  #     UL <- plogis(fit + (1.96 * se.fit))
-  #   })
-  #   
-  #   probdec120n
-  #   
-  #   # Gr?fica de probabilidades 
-  #   
-  #   ggplotly(ggplot(probdec120n, aes(x = eda, y = PredictedProb)) + labs(y="Probabilidad", x = "Edad", fill = "Intervalo de confianza", col = "Nivel educativo") + geom_ribbon(aes(ymin = LL, ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
-  #   
-  # })
+  })
   
 }
 

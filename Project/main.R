@@ -658,7 +658,7 @@ ay2 <- list(
   title = "casos positivos Covid-19"
 )
 
-fig_imsscovid1 <- imsscovid_chart1 %>% plot_ly() %>% add_lines(x = ~mes, y = ~asegurados, name='') %>% add_lines(x = ~mes, y = ~casos,name='', yaxis = "y2") %>% layout(title = "Double Y Axis", yaxis1 = ay1, yaxis2 = ay2,xaxis = list(title="x"))
+fig_imsscovid1 <- imsscovid_chart1 %>% plot_ly() %>% add_lines(x = ~mes, y = ~asegurados, name='') %>% add_lines(x = ~mes, y = ~casos,name='', yaxis = "y2") %>% layout(title = "Double Y Axis", yaxis2 = ay2,xaxis = list(title="x"))
 fig_imsscovid1
 
 # imsscovid_chart2 <- allImssCovidData %>% group_by(cve_ent) %>% summarise(casos = sum(casos_diarios))
