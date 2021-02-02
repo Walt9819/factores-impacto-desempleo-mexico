@@ -77,7 +77,7 @@ monthCovidImss.data <- read.csv("data/monthcovidimss_data.csv", header = TRUE)
 sidebar <- dashboardSidebar(
   # sidebarSearchForm(label = "Search...", "searchText", "searchButton"),
   sidebarMenu(
-    menuItem("Analisis Exploratorio", tabName = "dashboard", icon = icon("dashboard")),
+    menuItem("Análisis Exploratorio", tabName = "dashboard", icon = icon("dashboard")),
     #menuItem("Widgets", icon = icon("th"), tabName = "widgets", badgeLabel = "new",
     #         badgeColor = "green"
     #),
@@ -103,7 +103,7 @@ body <- dashboardBody(
     tabItem("dashboard",
             fluidRow(
               box(
-                title = "Factores de Impacto en el Desempleo y la Recuperacion Economica en Mexico",
+                title = "Factores de Impacto en el Desempleo y la Recuperación Económica en México",
                 width = "100%",
                 solidHeader = TRUE,
                 background = "light-blue",
@@ -139,7 +139,11 @@ body <- dashboardBody(
               box(
                 title = "Datos del ENOE por Periodo y clasificacion del empleo",
                 status = "primary",
-                plotlyOutput("periodoempleo", height = 400),
+                selectInput("periodografica", "",
+                            choices = c("Enero-Marzo" = 120, "Abril-Junio" = 220, "Julio-Septiembre" = 320),
+                            selected = "120"
+                ),
+                plotlyOutput("periodoempleo", height = 300),
                 height = 460
                 # width = "100%"
               )
@@ -296,7 +300,7 @@ body <- dashboardBody(
                 title = "",
                 solidheader = TRUE, status = "warning",
                 numericInput("edad", "Edad: ", value = 15, min = 15, max = 65, step = 1),
-                selectInput("genero", "Genero: ",
+                selectInput("genero", "Género: ",
                             choices = c("Hombre" = 1, "Mujer" = 2),
                             selected = "1"
                 ),
@@ -539,8 +543,12 @@ server <- function(input, output, session) {
   output$periodoempleo <- renderPlotly({
     enoe_chart3 <- AllDataENOE %>% filter(per != 319) %>% mutate(clase2 = replace(clase2,clase2 == 1,'Con empleo')) %>% mutate(clase2 = replace(clase2,clase2 == 2 | clase2 ==3,'Sin empleo'))
     enoe_chart3 <- enoe_chart3 %>% group_by(per,niv_ins,clase2) %>% count(clase2) %>% mutate(per = as.character(per))
-    fig_enoe3 <- enoe_chart3 %>% plot_ly(x = ~per,y = ~n,type = 'bar',split = ~clase2)
-    fig_enoe3
+    # fig_enoe3 <- enoe_chart3 %>% plot_ly(x = ~per,y = ~n,type = 'bar',split = ~clase2)
+    # fig_enoe3
+    
+    fig_enoe6 <- enoe_chart3 %>% filter(per == input$periodografica) %>% plot_ly(type = 'pie', labels = ~clase2, values = ~n)
+    fig_enoe6
+    
   })
   
   output$niveleduc <- renderPlotly({
@@ -597,7 +605,7 @@ server <- function(input, output, session) {
   })
   
   output$probddesempleo <- renderText({
-    paste("La probabilidad de estar desempleado en Mexico con tu perfil es: ", probdesempleo()$PredictedProb*100, sep = "")
+    paste("La probabilidad de estar desempleado en México con tu perfil es: ", probdesempleo()$PredictedProb*100, sep = "")
   })
   
   output$rate <- renderValueBox({
@@ -627,6 +635,7 @@ server <- function(input, output, session) {
     )
     
     fig_imsscovid <- monthCovImss.nacional %>% plot_ly() %>% add_lines(x = ~monYear, y = ~tasa, name='') %>% add_lines(x = ~monYear, y = ~casos, name='', yaxis = "y2") %>% layout(yaxis1 = ay1, yaxis2 = ay2, xaxis = list(title=""))
+
     fig_imsscovid
   })
   
