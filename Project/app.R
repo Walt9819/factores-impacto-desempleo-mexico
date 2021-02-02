@@ -616,7 +616,7 @@ server <- function(input, output, session) {
     
     # Gr?fica de probabilidades 
     
-    ggplotly(ggplot(probdec(), aes(x = eda, y = PredictedProb)) + geom_ribbon(aes(ymin = LL, ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
+    ggplotly(ggplot(probdec(), aes(x = eda, y = PredictedProb)) + labs(y="Probabilidad", x = "Edad", fill = "Intervalo de confianza", col = "Nivel educativo") + geom_ribbon(aes(ymin = LL, ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
     
   })
   
@@ -766,7 +766,7 @@ server <- function(input, output, session) {
   #   
   #   # Gr?fica de probabilidades 
   #   
-  #   ggplotly(ggplot(probdec120n, aes(x = eda, y = PredictedProb)) + geom_ribbon(aes(ymin = LL, ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
+  #   ggplotly(ggplot(probdec120n, aes(x = eda, y = PredictedProb)) + labs(y="Probabilidad", x = "Edad", fill = "Intervalo de confianza", col = "Nivel educativo") + geom_ribbon(aes(ymin = LL, ymax = UL, fill = niv_ins), alpha = 0.2) + geom_line(aes(colour = niv_ins), size = 1))
   #   
   # })
   
