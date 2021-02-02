@@ -4,10 +4,9 @@ library(ggplot2)
 library(shiny)
 library(shinydashboard)
 library(shinythemes)
+library(dplyr)
 
-ui <- 
-  
-  fluidPage(
+ui <- fluidPage(
     
     dashboardPage(
       
@@ -37,7 +36,7 @@ ui <-
                     selectInput("x", "Seleccione el valor de X",
                                 choices = c("home.score", "away.score")),
                     
-                    plotOutput("plot1", height = 600, width = 1000)
+                    plotOutput("plot", height = 800, width = 1200)
                   )
           ),
           
@@ -79,7 +78,7 @@ ui <-
 server <- function(input, output) {
   
   # Goles local - visitante
-  output$plot1 <- renderPlot({
+  output$plot <- renderPlot({
     
     data <-  read.csv("soccer.csv", header = T)
     data <- mutate(data, FTR = ifelse(home.score > away.score, "Home Score", ifelse(home.score < away.score, "Away Score", "Draw Score")))
