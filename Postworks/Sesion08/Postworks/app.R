@@ -87,19 +87,7 @@ server <- function(input, output) {
     
     data %>% ggplot(aes(x, fill = FTR)) + geom_bar() + facet_wrap("away.team") + labs(x =input$x, y = "Número de Goles") + ylim(0,30)
     
-  })
-  
-  # Gráficas
-  output$output_momios <- renderPlot({ 
-    
-    ggplot(mtcars, aes(x =  mtcars[,input$a] , y = mtcars[,input$y],colour = mtcars[,input$z] )) + 
-      geom_point() +
-      ylab(input$y) +
-      xlab(input$x) + 
-      theme_linedraw() + 
-      facet_grid(input$z)
-    
-  })   
+  }) 
   
   #Data
   output$data_table <- renderDataTable({data},options = list(aLengthMenu = c(15,30,50),iDisplayLength = 15))
