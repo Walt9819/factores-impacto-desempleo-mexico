@@ -60,7 +60,7 @@ ui <-
                   )
           ), 
           
-          #Momios
+          # Momios
           tabItem(tabName = "momios",
                   fluidRow(
                     h3("Factor de ganancia Máximo"),
@@ -77,7 +77,6 @@ ui <-
   )
 
 server <- function(input, output) {
-  library(ggplot2)
   
   # Goles local - visitante
   output$plot1 <- renderPlot({
@@ -99,12 +98,12 @@ server <- function(input, output) {
       ylab(input$y) +
       xlab(input$x) + 
       theme_linedraw() + 
-      facet_grid(input$z)  #selección del grid
+      facet_grid(input$z)
     
   })   
   
   #Data
-  output$data_table <- renderDataTable({data},options = list(aLengthMenu = c(10,25,50),iDisplayLength = 10))
+  output$data_table <- renderDataTable({data},options = list(aLengthMenu = c(15,30,50),iDisplayLength = 15))
   
 }
 
