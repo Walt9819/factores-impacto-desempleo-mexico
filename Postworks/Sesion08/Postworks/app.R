@@ -90,7 +90,7 @@ server <- function(input, output) {
   }) 
   
   #Data
-  output$data_table <- renderDataTable({data},options = list(aLengthMenu = c(15,30,50),iDisplayLength = 15))
+  output$data_table <- renderDataTable(read.csv("soccer.csv", header = T),options = list(lengthMenu = c(15,30,50),pageLength = 15))
   
 }
 
