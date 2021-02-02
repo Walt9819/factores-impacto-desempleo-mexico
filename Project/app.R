@@ -231,6 +231,15 @@ body <- dashboardBody(
             # )
     ),
     tabItem("subitem1",
+                fluidRow(
+              box(
+                title = "Probabilidad asociada al desempleo abierto según características sociodemográficas",
+                width = "100%",
+                solidHeader = TRUE,
+                background = "light-blue",
+                "La regresión logística (logistic regression) calcula la probabilidad de pertenecer al desempleo abierto según características sociodemográficas, tales como: edad, sexo y nivel educativo."
+              )
+            ),
             fluidRow(
                 box(
                   title = "Periodo trimestral: ",
@@ -245,7 +254,7 @@ body <- dashboardBody(
             
             fluidRow(
               box(
-                title = "Desempleo abierto",
+                title = "Probabilidad de ser desempleado abierto, según edad y nivel educativo",
                 status = "primary",
                 width = "100%",
                 plotlyOutput("regLogit", height = 400),
