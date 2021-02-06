@@ -60,6 +60,10 @@ colnames(data_enoe) <- c("cve_ent", "cve_mun", "sex", "eda", "niv_ins", "rama", 
 
 # Se omiten valores NaN dentro de la base de datos.
 data_enoe <- na.omit(data_enoe)
+
+# Se omiten los registros de las personas no economicamente activas y no dispibles [clase2 == 4], 
+# a los menores de 15 años y mayores de 65 años [eda <= 15 & eda >= 65] y aquellos sin nivel educativo registrado [niv_ins == 5]
+
 data_enoe <- data_enoe[data_enoe$clase2 <= 3 & 
                          data_enoe$clase2 != 0 & 
                          data_enoe$eda >= 15 & 
