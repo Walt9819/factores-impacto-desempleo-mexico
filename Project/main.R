@@ -1,11 +1,11 @@
-## Main file ##
+# # MAIN FILE # #
 
-## Install libraries
+# Instalacion de paquetes
 
 # install.packages("mongolite")
 # install.packages("aod")
 
-## Load libraries
+# Carga de paquetes
 suppressWarnings(library(mongolite)) # get data from MongoDB
 suppressWarnings(library(dplyr)) # data manipulation
 suppressWarnings(library(aod)) # logistic regression odds
@@ -19,27 +19,28 @@ suppressWarnings(library(zoo))
 suppressWarnings(library(ISLR))
 suppressWarnings(library(stringi))
 
-# Datos de conexi?n a MongoDB
+# Datos de conexion a MongoDB
 url_path = 'mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test'
 
-# Definici?n de carpeta de trabajo y conexi?n a base de datos MongoDB
+# Definicion de carpeta de trabajo y conexion a base de datos MongoDB
 path <- "C:/Users/BALAMLAPTOP2/Documents/GitHub/factores-impacto-desempleo-mexico/Project"
 setwd(path)
 
-################################# Carga Inicial: Inicio #################################
-## ADVERTENCIA: Este carga se debe ejecutar una sola vez, debido a que la informaci?n 
+############################### CARGA INICIAL BD #################################
+
+## ADVERTENCIA: Este carga se debe ejecutar una sola vez, debido a que la informacion 
 ## ya se encuentra disponible en la base de datos MongoDB para fines de este proyecto a 
-## fecha corte Diciembre 2020.En caso de hacer pruebas, cambiar url path de conexi?n.
-## Ninguna de las variables definidas en esta secci?n se deben considerar para an?lisis 
+## fecha corte Diciembre 2020.En caso de hacer pruebas, cambiar url path de conexion.
+## Ninguna de las variables definidas en esta seccion se deben considerar para analisis 
 ## posteriores (especialmente data frames).
 
-## Encuesta Nacional de Ocupaci?n y Empleo (ENOE)
-# Descargar bases de datos para los trimestres disponibles del a?o 2019 - 2020 en formato DBF.
+## Encuesta Nacional de Ocupacion y Empleo (ENOE)
+# Descargar bases de datos para los trimestres disponibles del anio 2019 - 2020 en formato DBF.
 # Disponibles en: https://www.inegi.org.mx/programas/enoe/15ymas/#Microdatos
 # Como primer paso se recomienda extraer todos los conjuntos de datos de los 5 archivos ZIP.
 # Lectura de Datos de sociodemogr?fico <SDEM>
 
-# Definici?n de directorio de salida durante el proceso de descomprimir archivos se debe respetar 'enoe_sdem'
+# Definicion de directorio de salida durante el proceso de descomprimir archivos se debe respetar 'enoe_sdem'
 outDir <- "C:\\Users\\BALAMLAPTOP2\\Documents\\GitHub\\factores-impacto-desempleo-mexico\\Project\\enoe_sdem"
 
 # Extrae los archivos .dbf de los archivos comprimidos ZIP
@@ -50,10 +51,10 @@ for (zfile in list.files(pattern = "*.zip$", recursive = TRUE)) {
 # Lectura de todos los archivos .dbf en la carpeta del proyecto
 rawdata <- lapply(list.files(pattern = "*.dbf$", recursive = TRUE), read.dbf)
 
-# Extracci?n de atributos considerados para el modelo de regresi?n l?gistica y lineal. 
+# Extraccion de atributos considerados para el modelo de regresion logistica y lineal. 
 selecteddata <- lapply(rawdata, select, c("ENT", "MUN", "SEX", "EDA", "NIV_INS", "RAMA", "CLASE2", "PER"))
 
-# Construcci?n de data frame y cambio de nombres
+# Construccion de data frame y cambio de nombres
 data_enoe <- do.call(rbind, selecteddata)
 colnames(data_enoe) <- c("cve_ent", "cve_mun", "sex", "eda", "niv_ins", "rama", "clase2", "per")
 
@@ -65,14 +66,14 @@ data_enoe <- data_enoe[data_enoe$clase2 <= 3 &
                          data_enoe$eda <= 65 &
                          data_enoe$niv_ins <= 4, ]
 
-# Se establece una conexi?n a MongoDB y se cargan todos los datos en la colecci?n 'data_enoe'
+# Se establece una conexion a MongoDB y se cargan todos los datos en la coleccion 'data_enoe'
 mongo <- mongo(collection = "data_enoe", db = "bedu18", url = url_path, verbose = TRUE)
 mongo$insert(data_enoe)
 
-## Empleados asegurados en el IMSS (API Data M?xico)
-# Conexi?n v?a API al modelo de datos Data M?xico de la Secretar?a de Econom?a
+## Empleados asegurados en el IMSS (API Data Mexico)
+# Conexion via API al modelo de datos Data Mexico de la Secretaria de Economia
 
-# Se construye URL de conexi?n para extraer datos del cubo IMSS con drilldown hasta Municipios y Meses para la m?trica Empleados asegurados
+# Se construye URL de conexion para extraer datos del cubo IMSS con drilldown hasta Municipios y Meses para la m?trica Empleados asegurados
 # Solicitud de datos con salida JSON
 url_imss <- "https://dev-api.datamexico.org/tesseract/data.jsonrecords?cube=imss&drilldowns=Municipality%2CMonth&measures=Insured+Employment&parents=false&sparse=false"
 json_imss <- fromJSON(paste(readLines(url_imss, warn=FALSE), collapse=""))
@@ -83,22 +84,22 @@ json_imss <- lapply(json_imss$data, function(x) {
   unlist(x)
 })
 
-# Construcci?n de dataframe y cambio de nombre a las columnas.
+# Construccion de dataframe y cambio de nombre a las columnas.
 data_imss <-as.data.frame(do.call("rbind", json_imss))
 colnames(data_imss) <- c("imun", "mun", "idmes", "mes","asegurados")
 
 # Convertir de character a n?merico valores sobre asegurados en el IMSS
 data_imss[,5] <- sapply(data_imss[, 5], as.numeric)
 
-# Carga de datos IMSS a MongoDB (Comment: Crear funci?n para subir dataframes a MongoDB, entrada nombre de la colecci?n y dataframe)
+# Carga de datos IMSS a MongoDB (Comment: Crear funcion para subir dataframes a MongoDB, entrada nombre de la coleccion y dataframe)
 mongo <- mongo(collection = "datamx_imss", db = "bedu18", 
                url = url_path, 
                verbose = TRUE)
 mongo$insert(data_imss[,c(1:2,4:5)])
 
 ## COVID19 (API Data M?xico)
-# Se construye URL de conexi?n para extraer datos del cubo gobmx_covid_stats_mun con drilldown 
-# hasta municipios y mes para las m?tricas Casos diarios, Muertes diarias y hospitalizados diarios 
+# Se construye URL de conexion para extraer datos del cubo gobmx_covid_stats_mun con drilldown 
+# hasta municipios y mes para las metricas Casos diarios, Muertes diarias y hospitalizados diarios 
 # (el agregado aplicado por el cubo OLAP es por defecto SUMA).
 url_covid <- "https://api.datamexico.org/tesseract/cubes/gobmx_covid_stats_mun/aggregate.jsonrecords?drilldowns%5B%5D=Geography.Geography.Municipality&drilldowns%5B%5D=Reported+Date.Time.Month&measures%5B%5D=Daily+Cases&measures%5B%5D=Daily+Deaths&measures%5B%5D=Daily+Hospitalized&parents=false&sparse=false"
 json_covid <- fromJSON(paste(readLines(url_covid, warn=FALSE), collapse=""))
@@ -109,15 +110,15 @@ json_covid <- lapply(json_covid$data, function(x) {
   unlist(x)
 })
 
-# Construcci?n de dataframe y cambio de nombre a las columnas.
+# Construccion de dataframe y cambio de nombre a las columnas.
 data_covid <-as.data.frame(do.call("rbind", json_covid))
 colnames(data_covid) <- c("imun", "mun", "idmes", "mes", "casos_diarios", "muertos_diarios", "hospitalizados_diarios")
 
-# Convertir de character a n?merico valores 
+# Convertir de character a numerico valores 
 data_covid[,5:7] <- sapply(data_covid[, 5:7], as.numeric)
 
 # Carga de datos COVID a MongoDB 
-# (Comment: Crear funci?n para subir dataframes a MongoDB, entrada nombre de la colecci?n y dataframe)
+# (Comment: Crear funcion para subir dataframes a MongoDB, entrada nombre de la coleccion y dataframe)
 mongo <- mongo(collection = "datamx_covid", db = "bedu18", url = url_path, verbose = TRUE)
 mongo$insert(data_covid[,c(1:2,4:7)])
 
@@ -126,34 +127,34 @@ write.csv(data_imss, "data_imss.csv", row.names = FALSE)
 write.csv(data_covid, "data_covid.csv", row.names = FALSE)
 
 
-## Integraci?n de datos para IMSS y COVID por municipio y fecha
-# Para no perder resoluci?n en la calidad de los datos se ejecuta un inner join a la izquierda.
+## Integracion de datos para IMSS y COVID por municipio y fecha
+# Para no perder resolucion en la calidad de los datos se ejecuta un inner join a la izquierda.
 # Se mantienen los valores sin municipio definido con claves en entidad = 9 y municipio = 999. 
-# (Omitir del an?lisis en caso de ser requerido aquellos registros con clave del municipio a 999, clave definida desde origen)
+# (Omitir del analisis en caso de ser requerido aquellos registros con clave del municipio a 999, clave definida desde origen)
 data_imss_covid <- merge(data_imss, 
                          data_covid, 
                          by = c("imun", "mes"), all.x = TRUE) 
 
-# Se separa el atributo identificador del mes en anio y mes por convenci?n. Al igual que, el identificador del municipio.
-# Se requiere de esa manera para gr?ficos y mapas a incorporar.
+# Se separa el atributo identificador del mes en anio y mes por convencion. Al igual que, el identificador del municipio.
+# Se requiere de esa manera para graficos y mapas a incorporar.
 data_imss_covid <- data_imss_covid %>% separate(mes, into = c('anio', 'mes'), sep = '-')
 data_imss_covid <- data_imss_covid %>% separate(imun, into = c('cve_ent', 'cve_mun'), sep = -3)
 
-# Se filtra el a?o 2020
+# Se filtra el anio 2020
 data_imss_covid <- data_imss_covid[data_imss_covid$anio == '2020', ]
 
-# Se ejecuta un subset para mantener aquellos atributos no repetidos despu?s del merge.
+# Se ejecuta un subset para mantener aquellos atributos no repetidos despues del merge.
 data_imss_covid <- as.data.frame(subset(data_imss_covid, select=c("cve_ent", "cve_mun", "anio", "mes", "asegurados", "casos_diarios", "muertos_diarios", "hospitalizados_diarios")))
 
-# Se asigna cero a aquellas m?tricas que no tienen concidencia despu?s del left join.
+# Se asigna cero a aquellas metricas que no tienen concidencia despues del left join.
 # Principalmente para aquellos municipios que empezaron a registrar casos de COVID en mese posteriores
 data_imss_covid[is.na(data_imss_covid)] <- 0
 
-# Convertir de character a n?merico valores 
+# Convertir de character a numerico valores 
 data_imss_covid[,3:8] <- sapply(data_imss_covid[, 3:8], as.numeric)
 
 # Carga de datos COVID a MongoDB 
-# (Comment: Crear funci?n para subir dataframes a MongoDB, entrada nombre de la colecci?n y dataframe)
+# (Comment: Crear funcion para subir dataframes a MongoDB, entrada nombre de la coleccion y dataframe)
 mongo <- mongo(collection = "datamx_imss_covid", db = "bedu18", url = url_path, verbose = TRUE)
 mongo$insert(data_imss_covid)
 
@@ -171,11 +172,11 @@ json_covid_daily <- lapply(json_covid_daily$data, function(x) {
   unlist(x)
 })
 
-## Construcci?n de dataframe y cambio de nombre a las columnas.
+## Construccion de dataframe y cambio de nombre a las columnas.
 data_covid_daily <-as.data.frame(do.call("rbind", json_covid_daily))
 colnames(data_covid_daily) <- c("imun", "mun", "idmes", "mes", "casos_diarios", "muertos_diarios", "hospitalizados_diarios")
 
-## Convertir de character a n?merico valores 
+## Convertir de character a numerico valores 
 data_covid_daily[,5:7] <- sapply(data_covid_daily[, 5:7], as.numeric)
 data_covid_daily$mes <- as.Date(data_covid_daily$mes) # Convertimos a fechas
 
@@ -197,7 +198,7 @@ monthCovid.data <- monthCovid.data %>% dplyr::group_by(imun, idmes) %>%
 
 write.csv("monthcovidimss_data.csv", fileEncoding = "UTF-8", row.names = F)
 
-################################# Carga Inicial: Fin #################################
+############################### LECTURA DE DATOS #################################
 
 #### Lectura de datos ####
 ## Conexi?n a MongoDB
@@ -216,7 +217,7 @@ imssCovid <- imssCovid.DB$find('{}')
 AllDataENOE <- ENOEData.DB$find('{"$and": [{ "clase2" : {"$ne": 0}}, {"clase2": {"$lte": 3}}, {"eda": {"$gte": 15}}, {"eda": {"$lte": 65}}, {"niv_ins": {"$lte": 4}}]}')
 
 
-##################################### INICIO : ENOE #####################################
+############################### ENOE : REGRESION LOGISTICA ########################
 
 # Varible dicotomica de desempleo 
 
@@ -251,18 +252,18 @@ head(DataENOE120)
 
 summary(DataENOE120)
 
-# Logistic regression
+# Regresion Logistica
 
 mylogit120 <- glm(clase2 ~ sex + eda + niv_ins, data = DataENOE120, family = "binomial")
 
 summary(mylogit120)
 
-# Prueba de Wald: Para saber el efecto de la variable categ?rica
+# Prueba de Wald: Para saber el efecto de la variable categorica
 
 wald.test(b = coef(mylogit120), Sigma = vcov(mylogit120), Terms = 4:6)
 
-    # H0: El efecto de la variable categ?rica no es estad?sticamente significativo
-    # Resultado: Pvalue< 0.05, por tanto, se rechaza H0.
+    # H0: El efecto de la variable categorica no es estadisticamente significativo
+    # Resultado: P-value< 0.05, por tanto, se rechaza H0.
 
 # Radios de probabilidad e intervalos de confianza al 95%
 
@@ -304,15 +305,15 @@ with(mylogit120, null.deviance - deviance)
 with(mylogit120, df.null - df.residual)
 
 with(mylogit120, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
-    # Ho: Linear regression better than logistic regression
-    # pvalue: 0, se recha la hip?tesis nula
+    # Ho: Regresion lineal es mejor que regresion logistica
+    # P-value: 0, se recha la hipotesis nula
 
 
 # # # # # # SEGUNDO TRIMESTRE 2020 # # # # # # 
 
 DataENOE220 <- AllDataENOE[AllDataENOE$per == 220, ]
 
-# Caracter?sticas iniciales
+# Caracteristicas iniciales
 
 names(DataENOE220)
 
@@ -322,7 +323,7 @@ head(DataENOE220)
 
 summary(DataENOE220)
 
-# Logistic regression
+# Regresion Logistica
 
 mylogit220 <- glm(clase2 ~ sex + eda + niv_ins, data = DataENOE220, family = "binomial")
 
@@ -332,8 +333,8 @@ summary(mylogit220)
 
 wald.test(b = coef(mylogit220), Sigma = vcov(mylogit120), Terms = 4:6)
 
-    # H0: El efecto de la variable categ?rica no es estad?sticamente significativo
-    # Resultado: Pvalue< 0.05, por tanto, se rechaza H0.
+    # H0: El efecto de la variable categorica no es estadisticamente significativa
+    # Resultado: P-value< 0.05, por tanto, se rechaza H0.
 
 # Radios de probabilidad e intervalos de confianza al 95%
 
@@ -376,8 +377,8 @@ with(mylogit220, df.null - df.residual)
 
 with(mylogit220, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
 
-    # Ho: Linear regression better than logistic regression
-    # pvalue: 0, se recha la hip?tesis nula
+    # H0: Regresion lineal es mejor que regresion logistica
+    # P-value: 0, se recha la hipotesis nula
 
 
 # # # # # # TERCER TRIMESTRE 2020 # # # # # # 
@@ -448,15 +449,14 @@ with(mylogit320, df.null - df.residual)
 
 with(mylogit320, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
 
-    # Ho: Linear regression better than logistic regression
-    # Pvalue: 0, se recha la hip?tesis nula
+    # H0: Regresion lineal es mejor que regresion logistica
+    # P-value: 0, se recha la hip?tesis nula
 
-##################################### FIN : ENOE #####################################
 
-################################ INICIO : COVID E IMSS ###############################
+############################### DATOS COVID E IMSS ###############################
 
 ####  Visualizaciones sobre resultados del modelo y justificar la importancia del proyecto.
-# Empleo en México 2019 - 2020
+# Empleo en Mexico 2019 - 2020
 # Asignar formato a la fecha del conjunto de datos IMSS
 #imssData <- read.csv("data/data_imss.csv", header = TRUE) # lectura datos del imss ya realizada al inicio
 imss.Data <- imssData %>% separate(mes, into = c('anio', 'mes'), sep = '-')
@@ -465,12 +465,14 @@ imss.Data$date_month <-as.Date(as.yearmon(paste(imss.Data$anio, "/", imss.Data$m
 # Agrupado de los datos por el atributo fecha
 data_chart1 <- imss.Data %>% group_by(date_month) %>% dplyr::summarise(asegurados = sum(asegurados))
 
-# Visualización del empleo en México y su evolución mensual
+# Visualizacion del empleo en Mexico y su evolucion mensual
 febJun.data <- data_chart1 %>% filter(date_month %in% c(as.Date("2020-02-01", format="%Y-%m-%d"), as.Date("2020-07-01", format="%Y-%m-%d"))) %>% select(asegurados) %>% as.vector()
 empleosPerdidos <- febJun.data[1, ] - febJun.data[2, ]
 porcentajePerdidos <- empleosPerdidos / febJun.data[1, ] * 100
-# Se resalta la mayor caída de empleos registrada en México, ocasionada principalmente por la pandemia COVID-19. 
-# Donde la tasa de ocupación entre Febrero y Julio del 2020 cayó 5.42% perdiendo mas de 2 millones 200 mil de puestos formales como informales.
+
+# Se resalta la mayor caida de empleos registrada en Mexico, ocasionada principalmente por la pandemia COVID-19. 
+# Donde la tasa de ocupación entre Febrero y Julio del 2020 cayo 5.42% perdiendo mas de 2 millones 200 mil de puestos formales como informales.
+
 print(paste("Donde la tasa de ocupación entre Febrero y Julio del 2020 cayó", round(porcentajePerdidos, digits = 2) ,"% perdiendo mas de", empleosPerdidos ,"puestos formales como informales."))
 
 plot_ly(data = data_chart1, x = ~date_month, y = ~asegurados, mode = 'lines', line = list(color = 'rgb(205, 12, 24)', width = 4)) %>% 
@@ -478,11 +480,11 @@ plot_ly(data = data_chart1, x = ~date_month, y = ~asegurados, mode = 'lines', li
 
 
 # Lectura de los datos guardados del covid e imss
-monthCovidImss.data <- read.csv("data/monthcovidimss_data.csv", encoding = "UTF-8") #ya debería de estar cargado en las lecturas iniciales
+monthCovidImss.data <- read.csv("data/monthcovidimss_data.csv", encoding = "UTF-8") #ya deberia de estar cargado en las lecturas iniciales
 
 monthCovidImss.data <- monthCovidImss.data %>% dplyr::filter(substr(stri_reverse(imun), 1, 3) != "999") # eliminar municipios desconocidos (terminan con 999)
 
-# Obtener tasa de cambio en el número de empleos
+# Obtener tasa de cambio en el numero de empleos
 monthCovidImss.data <- monthCovidImss.data %>% dplyr::group_by(imun) %>% dplyr::mutate(tasa_empleabilidad = c(0, diff(asegurados)))
 monthCovidImss.data[is.na(monthCovidImss.data)] <- 0 # municipios sin casos reportados hasta ese momento, marcar como 0 casos
 
@@ -495,7 +497,7 @@ monthCovImss.nacional <- monthCovidImss.data %>% dplyr::group_by(idmes) %>%
 
 monthCovImss.nacional <- monthCovImss.nacional %>% dplyr::mutate(monYear = as.Date(as.yearmon(as.character(idmes), format="%Y%m")))
 
-# Gráfico con tasa de empleabilidad 
+# Grafico con tasa de empleabilidad 
 ay1 <- list(
   tickfont = list(color = "red"),
   overlaying = "y",
@@ -535,11 +537,10 @@ pairs(trainCovImss.data[, 2:6], pch = 19, lower.panel = NULL) # data plot
 covImss.lm2 <- lm(tasa ~ casos, trainCovImss.data) # bad R^2
 summary(covImss.lm2) #modelo con únicamente los casos diarios
 
-################################ FIN : COVID E IMSS ###############################
 
-##################################### Graficas #####################################
+##################################### GRAFICOS #####################################
 
-## Enoe
+## ENOE
 
 AllDataENOE <- mutate(AllDataENOE, niv_ins = as.numeric(niv_ins))
 
@@ -571,7 +572,7 @@ enoe_chart4
 fig_enoe5 <- enoe_chart4 %>% plot_ly(x = ~niv_ins, y = ~eda, type = 'box') %>% layout(xaxis = list(title = 'Nivel Institucional'),yaxis = list(title = 'Edad'))
 fig_enoe5
 
-## ImssCovid
+## IMSS-COVID
 
 imsscovid_chart1 <- imssCovid %>% group_by(mes) %>% summarise(casos = sum(casos_diarios), asegurados = sum(asegurados))
 imsscovid_chart1
