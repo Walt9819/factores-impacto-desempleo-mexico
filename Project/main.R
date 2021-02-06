@@ -446,7 +446,7 @@ json_covid_daily <- lapply(json_covid_daily$data, function(x) {
 })
 
 # Construcci?n de dataframe y cambio de nombre a las columnas.
-data_covid_daily <-as.data.frame(do.call("rbind", json_covid))
+data_covid_daily <-as.data.frame(do.call("rbind", json_covid_daily))
 colnames(data_covid_daily) <- c("imun", "mun", "idmes", "mes", "casos_diarios", "muertos_diarios", "hospitalizados_diarios")
 
 # Convertir de character a n?merico valores 
@@ -532,143 +532,52 @@ covImss.lm <- lm(tasa ~ . - imun - mun, trainCovImss.data) # bad results
 summary(covImss.lm)
 # covImss.lm2 <- lm(tasa ~ cases, trainCovImss.data) # bad R^2
 
-#=============================================================================================
-
-#========================= Datos IMSS =========================
-
-#### Lectura de datos ####
-## Conexión a MongoDB
-imssData.DB <- mongo(db="bedu18", collection="datamx_imss", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
-
-## Lectura datos
-allImssData <- imssData.DB$find('{}')
-
-head(allImssData)
-
-allImssData <- allImssData %>% separate(mes, into = c('anio', 'mes'), sep = '-')
-allImssData$date_month <-as.Date(as.yearmon(paste(allImssData$anio, "/", allImssData$mes, sep=""), format="%Y/%m"))
-
-head(allImssData)
-
-# Plots
-allImssData_chart1 <- allImssData %>% group_by(date_month) %>% summarise(asegurados = sum(asegurados))
-plot_ly(allImssData_chart1, x = ~date_month, y = ~asegurados, mode = 'lines') %>% layout(title = "Empleo en México", xaxis = list(title = ""), yaxis = list (title = "Empleados"))
-
-#========================= Datos ENOE =========================
-
-#### Lectura de datos ####
-## Conexión a MongoDB
-enoeData.DB <- mongo(db="bedu18", collection="data_enoe", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
-
-## Lectura datos
-allEnoeData <- enoeData.DB$find('{}')
-
-# Omision de variables 
-allEnoeData <- na.omit(allEnoeData)
-
-allEnoeData <- allEnoeData[allEnoeData$clase2 <= 3 & 
-                               allEnoeData$clase2 !=0 & 
-                               allEnoeData$eda >= 15 & 
-                               allEnoeData$eda <=65 &
-                               allEnoeData$niv_ins <=4, ]
-
-head(allEnoeData)
-
-#========================= Datos IMSS-COVID =========================
-
-#### Lectura de datos ####
-## Conexión a MongoDB
-imssData.DB <- mongo(db="bedu18", collection="datamx_imss_covid", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
-
-## Lectura datos
-allImssCovidData <- imssData.DB$find('{}')
-
-head(allImssCovidData)
-
-#========================= Datos COVID =========================
-
-#### Lectura de datos ####
-## Conexión a MongoDB
-covidData.DB <- mongo(db="bedu18", collection="datamx_covid", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
-
-## Lectura datos
-allCovidData <- covidData.DB$find('{}')
-
-head(allCovidData)
-
-#========================= Graficas =========================
+##################################### Graficas #####################################
 
 ## Enoe
 
-enoe_chart1 <- allEnoeData %>% filter(niv_ins == 4, clase2 == 2 | clase2 == 3, per != 319) %>% group_by(per,sex) %>% count(sex) %>% mutate(per = as.character(per))
-enoe_chart1 <- enoe_chart1 %>% mutate(sex = replace(sex,sex==1,'Hombre')) %>% mutate(sex = replace(sex,sex==2,'Mujer'))
+AllDataENOE <- mutate(AllDataENOE, niv_ins = as.numeric(niv_ins))
+
+enoe_chart1 <- AllDataENOE %>% filter(niv_ins == 4, clase2 == 1, per != 319) %>% group_by(per,sex) %>% count(sex) %>% mutate(per = as.character(per))
+enoe_chart1 <- enoe_chart1 %>% mutate(sex = replace(sex,sex==0,'Hombre')) %>% mutate(sex = replace(sex,sex==1,'Mujer'))
 enoe_chart1
-fig_enoe1 <- enoe_chart1 %>% plot_ly(x = ~per,y = ~n,type = 'bar', split = ~sex)
+fig_enoe1 <- enoe_chart1 %>% plot_ly(x = ~per,y = ~n,type = 'bar', split = ~sex) %>% layout(title = 'Desempleo abierto por género y trimestre', xaxis = list(title = 'Periodo trimestral'),yaxis = list(title = 'Desempleo abierto'))
 fig_enoe1
 
-enoe_chart2 <- allEnoeData %>% filter(per != 319) %>% group_by(niv_ins) %>% count(niv_ins)
+enoe_chart2 <- AllDataENOE %>% filter(per != 319) %>% group_by(niv_ins) %>% count(niv_ins)
 enoe_chart2 <- enoe_chart2 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '1','Primaria incompleta'))
 enoe_chart2 <- enoe_chart2 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '2','Primaria completa'))
 enoe_chart2 <- enoe_chart2 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '3','Secundaria completa'))
 enoe_chart2 <- enoe_chart2 %>% mutate(niv_ins = replace(niv_ins,niv_ins == '4','Medio superior y superior'))
 enoe_chart2
-fig_enoe2 <- enoe_chart2 %>% plot_ly(labels = ~niv_ins, values = ~n, type = 'pie')
+fig_enoe2 <- enoe_chart2 %>% plot_ly(labels = ~niv_ins, values = ~n, type = 'pie') %>% layout(title = 'Población económicamente activa e inactiva por nivel educativo')
 fig_enoe2
 
-# Checar si se pueden utilizar
-
-enoe_chart3 <- allEnoeData %>% filter(per != 319) %>% mutate(clase2 = replace(clase2,clase2 == 1,'Con empleo')) %>% mutate(clase2 = replace(clase2,clase2 == 2 | clase2 ==3,'Sin empleo'))
+enoe_chart3 <- AllDataENOE %>% filter(per != 319) %>% mutate(clase2 = replace(clase2,clase2 == 0,'Con empleo')) %>% mutate(clase2 = replace(clase2,clase2 == 1,'Sin empleo'))
 enoe_chart3 <- enoe_chart3 %>% group_by(per,niv_ins,clase2) %>% count(clase2) %>% mutate(per = as.character(per))
 enoe_chart3
-fig_enoe3 <- enoe_chart3 %>% plot_ly(x = ~per,y = ~n,type = 'bar',split = ~clase2)
+fig_enoe3 <- enoe_chart3 %>% plot_ly(x = ~per,y = ~n,type = 'bar',split = ~clase2) %>% layout(xaxis = list(title = 'Periodo trimestrasl'),yaxis = list(title = 'Número de personas'))
 fig_enoe3
-fig_enoe4 <- enoe_chart3 %>% plot_ly(x = ~per,y = ~n,type = 'bar',split = ~clase2, color = ~niv_ins)
+fig_enoe4 <- enoe_chart3 %>% plot_ly(x = ~per,y = ~n,type = 'bar',split = ~clase2, color = ~niv_ins) %>% layout(xaxis = list(title = 'Periodo trimestrasl'),yaxis = list(title = 'Número de personas'))
 fig_enoe4
 
-enoe_chart4 <- allEnoeData %>% select(eda,niv_ins) %>% group_by(niv_ins)
+enoe_chart4 <- AllDataENOE %>% select(eda,niv_ins) %>% group_by(niv_ins)
 enoe_chart4
-fig_enoe5 <- enoe_chart4 %>% plot_ly(x = ~niv_ins, y = ~eda, type = 'box')
+fig_enoe5 <- enoe_chart4 %>% plot_ly(x = ~niv_ins, y = ~eda, type = 'box') %>% layout(xaxis = list(title = 'Nivel Institucional'),yaxis = list(title = 'Edad'))
 fig_enoe5
 
 ## ImssCovid
 
-# Usar esta grafica
-
-imsscovid_chart1 <- allImssCovidData %>% group_by(mes) %>% summarise(casos = sum(casos_diarios), asegurados = sum(asegurados))
+imsscovid_chart1 <- imssCovid %>% group_by(mes) %>% summarise(casos = sum(casos_diarios), asegurados = sum(asegurados))
 imsscovid_chart1
 
-ay1 <- list(
+ay <- list(
   tickfont = list(color = "red"),
   overlaying = "y",
   side = "right",
   title = "casos positivos Covid-19"
 )
 
-ay2 <- list(
-  tickfont = list(color = "red"),
-  overlaying = "y",
-  side = "right",
-  title = "casos positivos Covid-19"
-)
-
-fig_imsscovid1 <- imsscovid_chart1 %>% plot_ly() %>% add_lines(x = ~mes, y = ~asegurados, name='') %>% add_lines(x = ~mes, y = ~casos,name='', yaxis = "y2") %>% layout(title = "Double Y Axis", yaxis2 = ay2,xaxis = list(title="x"))
+fig_imsscovid1 <- imsscovid_chart1 %>% plot_ly() %>% add_lines(x = ~mes, y = ~asegurados, name='') %>% add_lines(x = ~mes, y = ~casos,name='', yaxis = "y2") %>% layout(title = "Número de empleados y casos diarios detectados con COVID-19", yaxis2 = ay,xaxis = list(title="Número del mes"),yaxis = list(title = 'Número de empleados'))
 fig_imsscovid1
-
-# imsscovid_chart2 <- allImssCovidData %>% group_by(cve_ent) %>% summarise(casos = sum(casos_diarios))
-# imsscovid_chart2
-
-# fig_imsscovid2 <- imsscovid_chart2 %>% plot_ly(type = 'pie', labels = ~cve_ent, values = ~casos)
-# fig_imsscovid2
-
-## Covid
-
-# Usar unicamente el data frame
-
-# allCovidData$cve_ent <- substr(allCovidData$imun,1,nchar(allCovidData$imun)-3)
-
-# covid_chart1 <- allCovidData %>% group_by(cve_ent) %>% summarise(casos = sum(casos_diarios))
-# covid_chart1 <- na.omit(covid_chart1)
-# covid_chart1
-# fig_covid1 <- covid_chart1 %>% plot_ly(type = 'pie', labels = ~cve_ent, values = ~casos)
-# fig_covid1
 
