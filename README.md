@@ -5,10 +5,10 @@ BEDU - Santander: Módulo 2. Programación y Estadística con R
 Carpeta con postworks y proyecto del equipo 18
 
 **Integrantes:**
-- Irene López
-- Laura Lozano
-- Enrique Rodríguez
-- Walter Rosales
+- Irene López [ver perfil](https://www.linkedin.com/in/irene-lopez-rodriguez/)
+- Laura Lozano [ver perfil](https://www.linkedin.com/in/laura-lozano-bautista/)
+- Enrique Rodríguez [ver perfil](https://www.linkedin.com/in/enrique-rodriguez97/)
+- Walter Rosales [ver perfil]()
 
 
 ## Postworks
