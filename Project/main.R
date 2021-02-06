@@ -1,5 +1,10 @@
 ## Main file ##
 
+## Install libraries
+
+# install.packages("mongolite")
+# install.packages("aod")
+
 ## Load libraries
 suppressWarnings(library(mongolite)) # get data from MongoDB
 suppressWarnings(library(dplyr)) # data manipulation
@@ -161,6 +166,7 @@ covidData.DB <- mongo(db="bedu18", collection="data_covid", url = "mongodb+srv:/
 logitData.DB <- mongo(db="bedu18", collection="data_logit", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
 imssDatamx.DB <- mongo(db="bedu18", collection="datamx_imss", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
 imssCovid.DB <- mongo(db="bedu18", collection="datamx_imss_covid", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
+ENOEData.DB <- mongo(db="bedu18", collection="data_enoe", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
 
 ## Lectura datos (DENUE, ENOE y COVID)
 # Lectura DENUE y COVID
@@ -168,23 +174,10 @@ allLogitData <- logitData.DB$find('{}')
 allCovidData <- covidData.DB$find('{}')
 imssData <- imssDatamx.DB$find('{}')
 imssCovid <- imssCovid.DB$find('{}')
+AllDataENOE <- ENOEData.DB$find('{"$and": [{ "clase2" : {"$ne": 0}}, {"clase2": {"$lte": 3}}, {"eda": {"$gte": 15}}, {"eda": {"$lte": 65}}, {"niv_ins": {"$lte": 4}}]}')
 
 
 ##################################### INICIO : ENOE #####################################
-
-# Conexion con MongoDB
-
-ENOEData.DB <- mongo(db="bedu18", collection="data_enoe", url = "mongodb+srv://Henry:3eXoszlAIBpQzGGA@proyectobedu.jr6fz.mongodb.net/test")
-
-AllDataENOE <- ENOEData.DB$find('{"$and": [{ "clase2" : {"$ne": 0}}, {"clase2": {"$lte": 3}}, {"eda": {"$gte": 15}}, {"eda": {"$lte": 65}}, {"niv_ins": {"$lte": 4}}]}')
-
-# Omision y tratamiento de variables
-
-AllDataENOE <- AllDataENOE[AllDataENOE$clase2 <= 3 & 
-                             AllDataENOE$clase2 != 0 & 
-                             AllDataENOE$eda >= 15 & 
-                             AllDataENOE$eda <= 65 &
-                             AllDataENOE$niv_ins <= 4, ]
 
 # Varible dicotomica de desempleo 
 
