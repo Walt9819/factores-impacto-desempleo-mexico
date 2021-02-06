@@ -158,6 +158,45 @@ mongo <- mongo(collection = "datamx_imss_covid", db = "bedu18", url = url_path, 
 mongo$insert(data_imss_covid)
 
 write.csv(data_imss_covid, "data_imss_covid.csv", row.names = FALSE)
+
+
+### Carga de datos desde Data Mexico (si se desea renovar los datos) para casos de COVID y asegurados del IMSS ###
+## Daily COVID cases form Data Mexico
+url_covid_daily <- "https://api.datamexico.org/tesseract/cubes/gobmx_covid_stats_mun/aggregate.jsonrecords?drilldowns%5B%5D=Geography.Geography.Municipality&drilldowns%5B%5D=Reported+Date.Time.Time&measures%5B%5D=Daily+Cases&measures%5B%5D=Daily+Deaths&measures%5B%5D=Daily+Hospitalized&parents=false&sparse=false"
+json_covid_daily <- fromJSON(paste(readLines(url_covid_daily, warn=FALSE), collapse=""))
+
+## Antes de aplicar un do.call con metodo rbind se deben anular las listas (unlist) para extraer los datos del JSON
+json_covid_daily <- lapply(json_covid_daily$data, function(x) {
+  x[sapply(x, is.null)] <- NA
+  unlist(x)
+})
+
+## Construcci?n de dataframe y cambio de nombre a las columnas.
+data_covid_daily <-as.data.frame(do.call("rbind", json_covid_daily))
+colnames(data_covid_daily) <- c("imun", "mun", "idmes", "mes", "casos_diarios", "muertos_diarios", "hospitalizados_diarios")
+
+## Convertir de character a n?merico valores 
+data_covid_daily[,5:7] <- sapply(data_covid_daily[, 5:7], as.numeric)
+data_covid_daily$mes <- as.Date(data_covid_daily$mes) # Convertimos a fechas
+
+summary(data_covid_daily) # Observamos los datos
+
+## Separar fecha
+monthCovid.data <- data_covid_daily %>% separate(mes, into = c('year', 'month', 'day'), sep = '-')
+monthCovid.data$idmes <- paste(monthCovid.data$year, monthCovid.data$month, sep="")
+
+# Obtener promedio por mes
+monthCovid.data <- monthCovid.data %>% dplyr::group_by(imun, idmes) %>% 
+                    dplyr::summarise(casos_diarios_prom = mean(casos_diarios), muertos_diarios_prom = mean(muertos_diarios), hospitalizados_diarios_prom = mean(hospitalizados_diarios))
+
+## Juntar con los datos de asegurados
+## ¡Se tiene que estar en el directorio del proyecto! para cargar del path relativo
+ monthCovidImss.data <- merge(imssData %>% select(asegurados, imun, idmes), 
+                         monthCovid.data,
+                         by = c("imun", "idmes"), all.x = TRUE)
+
+write.csv("monthcovidimss_data.csv", fileEncoding = "UTF-8", row.names = F)
+
 ################################# Carga Inicial: Fin #################################
 
 #### Lectura de datos ####
@@ -414,62 +453,33 @@ with(mylogit320, pchisq(null.deviance - deviance, df.null - df.residual, lower.t
 
 ##################################### FIN : ENOE #####################################
 
+################################ INICIO : COVID E IMSS ###############################
 
 ####  Visualizaciones sobre resultados del modelo y justificar la importancia del proyecto.
 # Empleo en México 2019 - 2020
 # Asignar formato a la fecha del conjunto de datos IMSS
-imssData <- imssData %>% separate(mes, into = c('anio', 'mes'), sep = '-')
-imssData$date_month <-as.Date(as.yearmon(paste(imssData$anio, "/", imssData$mes, sep=""), format="%Y/%m"))
-
-# CUIDADO!!! esta librería causa problemas con `dplyr`
-#detach(package:plyr) # o llamar explícitamente las funciones de `dplyr`
+#imssData <- read.csv("data/data_imss.csv", header = TRUE) # lectura datos del imss ya realizada al inicio
+imss.Data <- imssData %>% separate(mes, into = c('anio', 'mes'), sep = '-')
+imss.Data$date_month <-as.Date(as.yearmon(paste(imss.Data$anio, "/", imss.Data$mes, sep=""), format="%Y/%m"))
 
 # Agrupado de los datos por el atributo fecha
-data_chart1 <- imssData %>% group_by(date_month) %>% dplyr::summarise(asegurados = sum(asegurados))
+data_chart1 <- imss.Data %>% group_by(date_month) %>% dplyr::summarise(asegurados = sum(asegurados))
 
 # Visualización del empleo en México y su evolución mensual
+febJun.data <- data_chart1 %>% filter(date_month %in% c(as.Date("2020-02-01", format="%Y-%m-%d"), as.Date("2020-07-01", format="%Y-%m-%d"))) %>% select(asegurados) %>% as.vector()
+empleosPerdidos <- febJun.data[1, ] - febJun.data[2, ]
+porcentajePerdidos <- empleosPerdidos / febJun.data[1, ] * 100
 # Se resalta la mayor caída de empleos registrada en México, ocasionada principalmente por la pandemia COVID-19. 
-# Donde la tasa de ocupación entre Febrero y Julio del 2020 cayó % perdiendo mas de X millones de puestos formales como informales.
+# Donde la tasa de ocupación entre Febrero y Julio del 2020 cayó 5.42% perdiendo mas de 2 millones 200 mil de puestos formales como informales.
+print(paste("Donde la tasa de ocupación entre Febrero y Julio del 2020 cayó", round(porcentajePerdidos, digits = 2) ,"% perdiendo mas de", empleosPerdidos ,"puestos formales como informales."))
 
 plot_ly(data = data_chart1, x = ~date_month, y = ~asegurados, mode = 'lines', line = list(color = 'rgb(205, 12, 24)', width = 4)) %>% 
   layout(title = "Empleo en México 2019 - 2020", xaxis = list(title = ""), yaxis = list (title = "Empleados"))
 
 
-# Daily COVID cases
-url_covid_daily <- "https://api.datamexico.org/tesseract/cubes/gobmx_covid_stats_mun/aggregate.jsonrecords?drilldowns%5B%5D=Geography.Geography.Municipality&drilldowns%5B%5D=Reported+Date.Time.Time&measures%5B%5D=Daily+Cases&measures%5B%5D=Daily+Deaths&measures%5B%5D=Daily+Hospitalized&parents=false&sparse=false"
-json_covid_daily <- fromJSON(paste(readLines(url_covid_daily, warn=FALSE), collapse=""))
+# Lectura de los datos guardados del covid e imss
+monthCovidImss.data <- read.csv("data/monthcovidimss_data.csv", encoding = "UTF-8") #ya debería de estar cargado en las lecturas iniciales
 
-# Antes de aplicar un do.call con metodo rbind se deben anular las listas (unlist) para extraer los datos del JSON
-json_covid_daily <- lapply(json_covid_daily$data, function(x) {
-  x[sapply(x, is.null)] <- NA
-  unlist(x)
-})
-
-# Construcci?n de dataframe y cambio de nombre a las columnas.
-data_covid_daily <-as.data.frame(do.call("rbind", json_covid_daily))
-colnames(data_covid_daily) <- c("imun", "mun", "idmes", "mes", "casos_diarios", "muertos_diarios", "hospitalizados_diarios")
-
-# Convertir de character a n?merico valores 
-data_covid_daily[,5:7] <- sapply(data_covid_daily[, 5:7], as.numeric)
-data_covid_daily$mes <- as.Date(data_covid_daily$mes) # Convertimos a fechas
-
-summary(data_covid_daily) # Observamos los datos
-
-# Separar fecha
-monthCovid.data <- data_covid_daily %>% separate(mes, into = c('year', 'month', 'day'), sep = '-')
-monthCovid.data$idmes <- paste(monthCovid.data$year, monthCovid.data$month, sep="")
-
-# Obtener promedio por mes
-monthCovid.data <- monthCovid.data %>% dplyr::group_by(imun, idmes) %>% 
-                    dplyr::summarise(casos_diarios_prom = mean(casos_diarios), muertos_diarios_prom = mean(muertos_diarios), hospitalizados_diarios_prom = mean(hospitalizados_diarios))
-
-# Juntar con los datos de asegurados
-imssData <- read.csv("data/data_imss.csv", header = TRUE)
-monthCovidImss.data <- merge(imssData %>% select(asegurados, imun, idmes), 
-                         monthCovid.data,
-                         by = c("imun", "idmes"), all.x = TRUE)
-
-# Falto agregar la libreria stringi 
 monthCovidImss.data <- monthCovidImss.data %>% dplyr::filter(substr(stri_reverse(imun), 1, 3) != "999") # eliminar municipios desconocidos (terminan con 999)
 
 # Obtener tasa de cambio en el número de empleos
@@ -482,16 +492,9 @@ monthCovImss.nacional <- monthCovidImss.data %>% dplyr::group_by(idmes) %>%
                            muertes = mean(muertos_diarios_prom),
                            hospitalizados = mean(hospitalizados_diarios_prom)
                            )
-# Marca error con yearmon, se tuvo agregar as.character
-# Error: Problem with `mutate()` input `monYear`.
-# x character string is not in a standard unambiguous format
-# i Input `monYear` is `as.Date(as.yearmon(idmes, format = "%Y%m"))`.
-# Run `rlang::last_error()` to see where the error occurred.
-monthCovImss.nacional <- monthCovImss.nacional %>% dplyr::mutate(monYear = as.Date(as.yearmon(as.character(idmes), format="%Y%m")))
-write.csv(monthCovImss.nacional, "monthcovimss_nacional.csv", row.names = FALSE)
-write.csv(monthCovidImss.data, "monthcovidimss_data.csv", row.names = FALSE)
 
-### Este gráfico CONSIDERO que puede ir dentro del dashboard (lástima que acabe en Oct-2020, pero los datos del IMSS no dan más :( )
+monthCovImss.nacional <- monthCovImss.nacional %>% dplyr::mutate(monYear = as.Date(as.yearmon(as.character(idmes), format="%Y%m")))
+
 # Gráfico con tasa de empleabilidad 
 ay1 <- list(
   tickfont = list(color = "red"),
@@ -508,11 +511,8 @@ ay2 <- list(
 )
 
 fig_imsscovid <- monthCovImss.nacional %>% plot_ly() %>% add_lines(x = ~monYear, y = ~tasa, name='') %>% add_lines(x = ~monYear, y = ~casos, name='', yaxis = "y2") %>% layout(title = "Tasa de empleabilidad por mes", yaxis1 = ay1, yaxis2 = ay2,xaxis = list(title=""))
-fig_imsscovid
+fig_imsscovid # mostrar resultados
 
-
-
-names(monthCovidImss.data)
 
 # Create data for fitting linear model
 trainCovImss.data <- monthCovidImss.data %>% dplyr::mutate(mun = as.factor(imun), 
@@ -524,13 +524,18 @@ trainCovImss.data <- monthCovidImss.data %>% dplyr::mutate(mun = as.factor(imun)
                                             dplyr::select(mun, casos, muertes, hosp, tasa)
 
 
+## ¡OJO! Tarda mucho
 ### Ya está como png en `/Project/Pairs_Covid_Imss.png`
-#pairs(trainCovImss.data[, 2:6], pch = 19, lower.panel = NULL) # data plot
+pairs(trainCovImss.data[, 2:6], pch = 19, lower.panel = NULL) # data plot
 
-# Working on this
-covImss.lm <- lm(tasa ~ . - imun - mun, trainCovImss.data) # bad results
-summary(covImss.lm)
-# covImss.lm2 <- lm(tasa ~ cases, trainCovImss.data) # bad R^2
+## ¡OJO! Tarda mucho ##
+#covImss.lm <- lm(tasa ~ . - imun - mun, trainCovImss.data) # bad results
+#summary(covImss.lm) # modelo con casos, muertes, hospitalizados y municipios
+
+covImss.lm2 <- lm(tasa ~ casos, trainCovImss.data) # bad R^2
+summary(covImss.lm2) #modelo con únicamente los casos diarios
+
+################################ FIN : COVID E IMSS ###############################
 
 ##################################### Graficas #####################################
 
