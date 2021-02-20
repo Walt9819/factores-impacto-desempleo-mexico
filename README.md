@@ -1,5 +1,5 @@
-# Main README
+# Factores de Impacto en el Desempleo y la Recuperación Económica en México
 
-# R resources [here](R/)
+## Implementación en R [here](R/)
 
-# Python resources [here](Python/)
+## Implementación en Python [here](Python/)
