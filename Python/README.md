@@ -1,6 +1,17 @@
+# BEDU - Santander
+## *Módulo 2. Procesamiento de Datos con Python*
+
+**Equipo 18**
+
+Integrantes:
+- Irene López [ver perfil](https://www.linkedin.com/in/irene-lopez-rodriguez/)
+- Laura Lozano [ver perfil](https://www.linkedin.com/in/laura-lozano-bautista/)
+- Enrique Rodríguez [ver perfil](https://www.linkedin.com/in/enrique-rodriguez97/)
+- Walter Rosales [ver perfil]()
+- 
 # Tema: **Impacto del confinamineto en el sector restaurantero y de alojamiento en México**
 
-[Video](https://youtu.be/n-_0N_6R-FY)
+[Video del proyecto](https://youtu.be/n-_0N_6R-FY)
 
 ## Identificación del problema
 La pandemia de COVID-19 en México trajo consigo desempleo e inactividad, ya sea por incompatibilidad de los horarios personales con el trabajo en línea, recortes administrativos o falta de herramientas tecnológicas. Asimismo, las personas que se mantuvieron ocupadas durante este periodo vieron un cambio en la calidad de su empleo, pues los costos económicos de las medidas sanitarias que las autoridades tomaron se vieron reflejados en la reducción de la oferta laboral (implicando así una mayor carga laboral para los empleados que permanecieron en las empresas), una menor capacidad utilizada y el funcionamiento de las cadenas de valor.
