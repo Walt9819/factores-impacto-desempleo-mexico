@@ -1,5 +1,7 @@
 # Tema: **Impacto del confinamineto en el sector restaurantero y de alojamiento en México**
 
+[Video](https://youtu.be/n-_0N_6R-FY)
+
 ## Identificación del problema
 La pandemia de COVID-19 en México trajo consigo desempleo e inactividad, ya sea por incompatibilidad de los horarios personales con el trabajo en línea, recortes administrativos o falta de herramientas tecnológicas. Asimismo, las personas que se mantuvieron ocupadas durante este periodo vieron un cambio en la calidad de su empleo, pues los costos económicos de las medidas sanitarias que las autoridades tomaron se vieron reflejados en la reducción de la oferta laboral (implicando así una mayor carga laboral para los empleados que permanecieron en las empresas), una menor capacidad utilizada y el funcionamiento de las cadenas de valor.
 
@@ -12,7 +14,6 @@ Según estimaciones de la Cámara Nacional de la Industrial Restaurantera y de A
 > Analizar la situación del empleo en México durante el 2020 en los sectores de la actividad económica, haciendo especial énfasis en las condiciones laborales del sector restaurantero y de alojamiento.
 
 > Indagar si el tema referente al cierre de restaurantes y hoteles, realmente fue percibido como un problema por la población mexicana, así como el tipo de sentimientos experimentados en la difusión de las noticias.
-
 
 ## Preguntas de investigación
 *	¿Cómo son las condiciones laborales de las personas que permanecieron en la ocupación durante la pandemia de COVID-19? 
@@ -53,8 +54,8 @@ Existen tres fases durante el desarrollo del proyecto para esta fase:
  
 * Nuestro fundamento de razonamiento se basa en el poder adquisitivo, las regiones más afectadas durante la pandemia debido al cierre de restaurantes y las empresas con mayor éxito reportadas en los periódicos a nivel nacional. **`Sin embargo cabe mencionar que se utilizaran más APIs como Foursquare o Google Places y los extensos datos geográficos y censales de INEGI para robustecer nuestro algoritmo de predicción y apoyo en la toma de decisiones. `**
 
-## Extracción de notas periodísticas con Scrapy
-Scrapy fue utilizado para rastrear el sitio web de La Jornada (se puede actualizar la programación hacia otro periodico) y extraer las noticias de manera eficiente sobre las palabras clave *'restaurantes'* y *'covid'*. Con el objetivo de analizar la conversación sobre unos de los sectores economicos mas afectados durante de la pandemia, con este análisis se logro corroborar que efectivamente el cierre y la reapertura fueron temas latentes durante durante el año 2020.  Los pasos que se siguieron para la extracción de las noticias fueron los siguientes:
+## Procedimiento adicional: Extracción de notas periodísticas con Scrapy
+Scrapy fue utilizado para rastrear el sitio web de La Jornada (se puede actualizar la programación hacia otro periodico) y extraer las noticias de manera eficiente sobre las palabras clave *'restaurantes'* y *'covid'*. Con el objetivo de analizar la conversación sobre unos de los sectores económicos más afectados durante de la pandemia, con este análisis se logró corroborar que efectivamente el cierre y la reapertura fueron temas latentes durante durante el año 2020.  Los pasos que se siguieron para la extracción de las noticias fueron los siguientes:
 1. Instalar los módulos scrapy y virtualenv:
 
 > `pip install scrapy`
@@ -79,8 +80,12 @@ $ scrapy startproject webscrapy
 $ cd webscrapy
 $ scrapy genspider jornada www.jornada.com.mx
 ```
-5. Al terminar de codificar la araña, se ejecuta el siguiente comando para iniciar el proceso de extracción de información:
+5. Al terminar de codificar la araña o en su defecto copiar los códigos establecidos en el siguiente enlace [News Web Scraper](https://github.com/Walt9819/factores-impacto-desempleo-mexico/tree/main/Python/newsscrapper), se ejecuta el siguiente comando para iniciar el proceso de extracción de información:
 
 ```
 $ scrapy crawl jornada -a Keywords='restaurantes,covid' -o jornada_restaurantes.csv
 ```
+
+6. El archivo con los datos sin ningún proceso de limpieza (raw) y las noticias traducidas al idioma inglés se encuentran en sus respectivos enlaces: [Raw Data Web Scraper](https://raw.githubusercontent.com/Walt9819/factores-impacto-desempleo-mexico/main/Python/data/jornada_restaurantes.csv) y [Noticias en Inglés](https://raw.githubusercontent.com/Walt9819/factores-impacto-desempleo-mexico/main/Python/data/translated_news.csv)
+
+7. Los principales archivos que requirieron modificaciones o ajustes o agregar código nuevo en el scraper fueron: `jornada.py` y `items.py`.
