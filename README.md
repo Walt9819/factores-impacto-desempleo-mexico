@@ -18,6 +18,6 @@ Analizar la situación del empleo en México durante los tres primeros trimestre
 ## Implementación en Python [here](Python/FactoresDeImpactoEnDesempleoMX.ipynb)
 
 ### Objetivo
-Analizar la situación del empleo en México durante el 2020 en los sectores de la actividad económica, haciendo especial énfasis en las condiciones laborales del sector restaurantero y de alojamiento.\\
+Analizar la situación del empleo en México durante el 2020 en los sectores de la actividad económica, haciendo especial énfasis en las condiciones laborales del sector restaurantero y de alojamiento. \\
 
 [Video](https://youtu.be/n-_0N_6R-FY)
