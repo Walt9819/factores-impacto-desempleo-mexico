@@ -10,7 +10,7 @@ Según estimaciones de la Cámara Nacional de la Industrial Restaurantera y de A
 ## Implementación en R [here](R/)
 
 ### Objetivo
-Analizar la situación del empleo en México durante los tres primeros trimestres de 2020, asimismo, calcular la probabilidad de estar desempleado conforme a características sociodemográficas y así identificar los perfiles de los mexicanos más vulnerables ante el deterioro del mercado laboral derivado de la situación que vivimos hoy en día.\\
+Analizar la situación del empleo en México durante los tres primeros trimestres de 2020, asimismo, calcular la probabilidad de estar desempleado conforme a características sociodemográficas y así identificar los perfiles de los mexicanos más vulnerables ante el deterioro del mercado laboral derivado de la situación que vivimos hoy en día.\
 
 [Desempleo vs Covid - México](https://siaec.shinyapps.io/Desempleo/)\
 [Video](https://youtu.be/b2REk8xvMRE)
@@ -18,6 +18,6 @@ Analizar la situación del empleo en México durante los tres primeros trimestre
 ## Implementación en Python [here](Python/FactoresDeImpactoEnDesempleoMX.ipynb)
 
 ### Objetivo
-Analizar la situación del empleo en México durante el 2020 en los sectores de la actividad económica, haciendo especial énfasis en las condiciones laborales del sector restaurantero y de alojamiento. \\
+Analizar la situación del empleo en México durante el 2020 en los sectores de la actividad económica, haciendo especial énfasis en las condiciones laborales del sector restaurantero y de alojamiento.\
 
 [Video](https://youtu.be/n-_0N_6R-FY)
