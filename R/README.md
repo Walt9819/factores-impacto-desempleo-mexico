@@ -1,8 +1,9 @@
-# Módulo 2. Programación y Estadística con R \ *Factores de Impacto en el Desempleo y la Recuperación Económica en México*
+# Módulo 2. Programación y Estadística con R <br /> *Factores de Impacto en el Desempleo y la Recuperación Económica en México*
 
 
 ## Objetivo
 Analizar la situación del empleo en México durante los tres primeros trimestres de 2020, asimismo, calcular la probabilidad de estar desempleado conforme a características sociodemográficas y así identificar los perfiles de los mexicanos más vulnerables ante el deterioro del mercado laboral derivado de la situación que vivimos hoy en día.
+
 [Proyecto](https://github.com/Walt9819/factores-impacto-desempleo-mexico/tree/main/R/Project)
 
 ## Dashboard
