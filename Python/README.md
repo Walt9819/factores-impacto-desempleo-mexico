@@ -1,7 +1,7 @@
 # Módulo 2. Procesamiento de Datos con Python <br /> *Impacto del confinamineto en el sector restaurantero y de alojamiento en México*
 
 ## Proyecto
-[Jupiter Notebook] (https://github.com/Walt9819/factores-impacto-desempleo-mexico/blob/main/Python/FactoresDeImpactoEnDesempleoMX.ipynb)
+[Jupiter Notebook](https://github.com/Walt9819/factores-impacto-desempleo-mexico/blob/main/Python/FactoresDeImpactoEnDesempleoMX.ipynb)
 
 ## Video
 
