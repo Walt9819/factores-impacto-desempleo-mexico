@@ -9,7 +9,7 @@ Integrantes:
 - Enrique Rodríguez [ver perfil](https://www.linkedin.com/in/enrique-rodriguez97/)
 - Walter Rosales [ver perfil]()
 
-## Módulo 2. Programación y Estadísticas con R [here](R/)
+## Módulo 2. Programación y Estadística con R [here](R/)
 
 ### Objetivo
 Analizar la situación del empleo en México durante los tres primeros trimestres de 2020, asimismo, calcular la probabilidad de estar desempleado conforme a características sociodemográficas y así identificar los perfiles de los mexicanos más vulnerables ante el deterioro del mercado laboral derivado de la situación que vivimos hoy en día.
