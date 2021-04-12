@@ -1,13 +1,5 @@
 # Módulo 2. Procesamiento de Datos con Python <br /> *Impacto del confinamineto en el sector restaurantero y de alojamiento en México*
 
-**Equipo 18**
-
-Integrantes:
-- Irene López [ver perfil](https://www.linkedin.com/in/irene-lopez-rodriguez/)
-- Laura Lozano [ver perfil](https://www.linkedin.com/in/laura-lozano-bautista/)
-- Enrique Rodríguez [ver perfil](https://www.linkedin.com/in/enrique-rodriguez97/)
-- Walter Rosales [ver perfil]()
-
 ## Video
 
 [Video del proyecto](https://youtu.be/n-_0N_6R-FY)
