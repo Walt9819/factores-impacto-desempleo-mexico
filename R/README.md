@@ -3,16 +3,19 @@
 # *Factores de Impacto en el Desempleo y la Recuperación Económica en México*
 
 
-## Objetivo
+## 1. Objetivo
 Analizar la situación del empleo en México durante los tres primeros trimestres de 2020, asimismo, calcular la probabilidad de estar desempleado conforme a características sociodemográficas y así identificar los perfiles de los mexicanos más vulnerables ante el deterioro del mercado laboral derivado de la situación que vivimos hoy en día.
+
+## 2. Contenido
 
 [Proyecto](https://github.com/Walt9819/factores-impacto-desempleo-mexico/tree/main/R/Project)
 
 [Desempleo vs Covid - México](https://siaec.shinyapps.io/Desempleo/)
 
+## 3. Video
 [Video](https://youtu.be/b2REk8xvMRE)
 
-## Postworks
+## 4. Postworks
 <details><summary>Índice</summary>
   
 |Postwork|Recursos|
