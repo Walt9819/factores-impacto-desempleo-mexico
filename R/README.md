@@ -1,14 +1,5 @@
-# Equipo 18
-
-BEDU - Santander: Módulo 2. Programación y Estadística con R
-
-Carpeta con postworks y proyecto del equipo 18
-
-**Integrantes:**
-- Irene López [ver perfil](https://www.linkedin.com/in/irene-lopez-rodriguez/)
-- Laura Lozano [ver perfil](https://www.linkedin.com/in/laura-lozano-bautista/)
-- Enrique Rodríguez [ver perfil](https://www.linkedin.com/in/enrique-rodriguez97/)
-- Walter Rosales [ver perfil]()
+# Módulo 2. Programación y Estadística con R
+# Factores de Impacto en el Desempleo y la Recuperación Económica en México
 
 
 ## Postworks
@@ -27,7 +18,7 @@ Carpeta con postworks y proyecto del equipo 18
 
 </details>
 
-# Factores de Impacto en el Desempleo y la Recuperación Económica en México
+
 
 ## Objetivo
 Analizar la situación del empleo en México durante los tres primeros trimestres de 2020, asimismo, calcular la probabilidad de estar desempleado conforme a características sociodemográficas y así identificar los perfiles de los mexicanos más vulnerables ante el deterioro del mercado laboral derivado de la situación que vivimos hoy en día.
