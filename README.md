@@ -17,8 +17,9 @@ Analizar la situación del empleo en México durante los tres primeros trimestre
 [Dashboard: Desempleo vs Covid - México](https://siaec.shinyapps.io/Desempleo/)\
 [Video](https://youtu.be/b2REk8xvMRE)
 
-## Módulo 3. Procesamiento de datos con Python [here](Python/FactoresDeImpactoEnDesempleoMX.ipynb)
+## Módulo 3. Procesamiento de datos con Python [here](Python/)
 
+### *Impacto del confinamineto en el sector restaurantero y de alojamiento en México*
 ### Objetivo
 Analizar la situación del empleo en México durante el 2020 en los sectores de la actividad económica, haciendo especial énfasis en las condiciones laborales del sector restaurantero y de alojamiento.
 
