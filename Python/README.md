@@ -1,4 +1,4 @@
-### Módulo 2. Procesamiento de Datos con Python 
+### Módulo 3. Procesamiento de Datos con Python 
 
 # *Impacto del confinamineto en el sector restaurantero y de alojamiento en México*
 
