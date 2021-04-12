@@ -1,6 +1,14 @@
 # Módulo 2. Programación y Estadística con R
-# Factores de Impacto en el Desempleo y la Recuperación Económica en México
+## *Factores de Impacto en el Desempleo y la Recuperación Económica en México
 
+
+## Objetivo
+Analizar la situación del empleo en México durante los tres primeros trimestres de 2020, asimismo, calcular la probabilidad de estar desempleado conforme a características sociodemográficas y así identificar los perfiles de los mexicanos más vulnerables ante el deterioro del mercado laboral derivado de la situación que vivimos hoy en día.
+
+## Dashboard
+
+[Desempleo vs Covid - México](https://siaec.shinyapps.io/Desempleo/)\
+[Video](https://youtu.be/b2REk8xvMRE)
 
 ## Postworks
 <details><summary>Índice</summary>
@@ -17,13 +25,3 @@
 |Postwork 8|[Archivo](Postworks/Sesion08/Postworks/app.R)|
 
 </details>
-
-
-
-## Objetivo
-Analizar la situación del empleo en México durante los tres primeros trimestres de 2020, asimismo, calcular la probabilidad de estar desempleado conforme a características sociodemográficas y así identificar los perfiles de los mexicanos más vulnerables ante el deterioro del mercado laboral derivado de la situación que vivimos hoy en día.
-
-## Dashboard
-
-[Desempleo vs Covid - México](https://siaec.shinyapps.io/Desempleo/)\
-[Video](https://youtu.be/b2REk8xvMRE)
