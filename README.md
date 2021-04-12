@@ -9,7 +9,10 @@ Integrantes:
 - Walter Rosales [ver perfil]()
 
 ### Proyectos: 
-- Módulo 2. Programación y Estadística con R [here](R/) <br /> *Desempleo durante la pandemia de COVID-19*
-- Módulo 3. Procesamiento de datos con Python [here](Python/) <br /> *Impacto del confinamiento en el sector restaurantero y de alojamiento en México*
-- Módulo 4. Análisis de datos con Python [here](AD_Python/) <br /> *Recuperación económica post-COVID: Localización óptima de restaurantes en la Cuidad de México*
+- Módulo 2. Programación y Estadística con R  <br /> ***Desempleo durante la pandemia de COVID-19*** [here](R/)
+
+- Módulo 3. Procesamiento de datos con Python  <br /> ***Impacto del confinamiento en el sector restaurantero y de alojamiento en México*** [here](Python/)
+
+- Módulo 4. Análisis de datos con Python <br /> ***Recuperación económica post-COVID: Localización óptima de restaurantes en la Cuidad de México*** [here](AD_Python/)
+
 - Módulo 5. Machine Learning [here]()
