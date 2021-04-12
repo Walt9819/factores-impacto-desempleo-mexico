@@ -1,5 +1,4 @@
-# BEDU - Santander
-## *Módulo 2. Procesamiento de Datos con Python*
+# Módulo 2. Procesamiento de Datos con Python <br /> *Impacto del confinamineto en el sector restaurantero y de alojamiento en México*
 
 **Equipo 18**
 
@@ -8,8 +7,8 @@ Integrantes:
 - Laura Lozano [ver perfil](https://www.linkedin.com/in/laura-lozano-bautista/)
 - Enrique Rodríguez [ver perfil](https://www.linkedin.com/in/enrique-rodriguez97/)
 - Walter Rosales [ver perfil]()
-- 
-# Tema: **Impacto del confinamineto en el sector restaurantero y de alojamiento en México**
+
+## Video
 
 [Video del proyecto](https://youtu.be/n-_0N_6R-FY)
 
