@@ -1,5 +1,4 @@
-# BEDU - Santander
-## *Data Analysis*
+# BEDU - Santander: *Data Analysis*
 
 **Equipo 9**
 
