@@ -1,5 +1,4 @@
-# Módulo 2. Programación y Estadística con R
-# Factores de Impacto en el Desempleo y la Recuperación Económica en México
+# Módulo 2. Programación y Estadística con R\nFactores de Impacto en el Desempleo y la Recuperación Económica en México
 
 
 ## Postworks
