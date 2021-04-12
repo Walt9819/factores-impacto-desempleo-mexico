@@ -23,3 +23,11 @@ Analizar la situación del empleo en México durante los tres primeros trimestre
 Analizar la situación del empleo en México durante el 2020 en los sectores de la actividad económica, haciendo especial énfasis en las condiciones laborales del sector restaurantero y de alojamiento.
 
 [Video](https://youtu.be/n-_0N_6R-FY)
+
+## Módulo 4. Análisis de datos con Python [here]()
+
+### Objetivo
+
+## Módulo 5. Machine Learning [here]()
+
+### Objetivo
