@@ -7,7 +7,7 @@ Encontrar la localización óptima de restaurantes en la Ciudad de México para 
 
 
 ## 2. Contenido
-[Jupyter Notebook]()
+[Jupyter Notebook](restaurantes_cdmx.ipynb/)
 
 
 ## 3. Video
