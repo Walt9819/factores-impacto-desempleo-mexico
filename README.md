@@ -13,6 +13,6 @@ Integrantes:
 
 - Módulo 3. Procesamiento de datos con Python  <br /> ***Impacto del confinamiento en el sector restaurantero y de alojamiento en México*** [here](Python/)
 
-- Módulo 4. Análisis de datos con Python <br /> ***Recuperación económica post-COVID: Localización óptima de restaurantes en la Cuidad de México*** [here](AD_Python/)
+- Módulo 4. Análisis de datos con Python <br /> ***Recuperación económica post-COVID: Localización óptima de restaurantes en la Ciudad de México*** [here](AD_Python/)
 
 - Módulo 5. Machine Learning [here]()
