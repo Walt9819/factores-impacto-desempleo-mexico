@@ -19,7 +19,7 @@ Dadas las dificultades por las que ha atrevesado el sector restaurantero en todo
 
 
 ## 3. Contenido
-[Jupyter Notebook](restaurantes_cdmx.ipynb/)
+[Postworks](restaurantes_cdmx.ipynb/)
 
 
 ## 4. Video
