@@ -12,15 +12,22 @@ Según estimaciones de la Cámara Nacional de la Industrial Restaurantera y de A
 Dadas las dificultades por las que ha atrevesado el sector restaurantero en todo México, es viable pensar en las acciones que se llevarán a cabo durante la recuperación económica. Aquellos empresarios que retrasaron inversiones por la pandemia, o que ya ven un panarama favorable para expandir su negocio, necesitarán una guía para potenciar su alcance y asegurar el éxito de su nuevo restaurante. Por tanto, esta investigación se centra en calcular la localización óptima de un restaurante en México, a partir de datos a nivel municipal del Directorio Estadístico Nacional de Unidades Económicas (DENUE) y la Encuesta Nacional de Ocupación y Empleo (ENOE) del INEGI. Si bien este módulo se centra en el análisis, tanto básico como avanzado, de datos, al final se muestra un primer acercamiento al algoritmo K-means, dando pie al módulo de Machine Learning.
 
 
+## 2. Preguntas de investigación
 
-## 2. Objetivos
+¿Cuáles son los municipios donde sería más viable abrir un restaurante? 
+¿Cuál es la categoría de restaurantes más común en México? 
+¿Este resultado cambia al analizarlo por entidad federativa?
+
+
+
+## 3. Objetivos
 - Encontrar la localización óptima de restaurantes en los municipios de México para contribuir en la recuperación económica después de la pandemia de COVID-19.
 - Analizar la composición del sector restaurantero y su relación con características demográficas y económicas de los municipios.
 
 
-## 3. Contenido
+## 4. Contenido
 [Postworks](restaurantes_cdmx.ipynb/)
 
 
-## 4. Video
+## 5. Video
 [Video]()
