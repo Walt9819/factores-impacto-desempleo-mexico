@@ -26,7 +26,7 @@ Dadas las dificultades por las que ha atravesado el sector restaurantero en todo
 
 
 ## 4. Contenido
-[Postworks](restaurantes_cdmx.ipynb/)
+[Jupiter Notebook](restaurantes_cdmx.ipynb/)
 
 
 ## 5. Video
