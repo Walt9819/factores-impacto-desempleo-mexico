@@ -15,4 +15,4 @@ Integrantes:
 
 - Módulo 4. Análisis de datos con Python <br /> ***Recuperación económica post-COVID: Localización óptima de restaurantes en México*** [here](AD_Python/)
 
-- Módulo 5. Machine Learning [here](Machine_Learning/)
+- Módulo 5. Machine Learning <br /> ***Recuperación económica post-COVID: Localización óptima de restaurantes en México*** [here](Machine_Learning/)
