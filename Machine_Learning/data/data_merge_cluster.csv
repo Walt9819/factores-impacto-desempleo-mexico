@@ -1,4 +1,4 @@
-imun,ent,nom_ent,mun,nom_mun,pobtot,ing_lab,ocupados,desocupados,pob,pea,ocupada,tra_omun,tot_est,est_e_a,est_n_e_a,tot_p_o,po_e_a,po_n_e_a,comida_carta_corrida,antojitos,pescados_mariscos,pizzas_hamburguesas_hotdogs_pollos_rostizados,tacos_tortas,autoservicio,otro_tipo_alimentos,CVEGEO,amenazas,danio_propiedad,extorsion,robo_negocio
+imun,ent,nom_ent,mun,nom_mun,pobtot,ing_lab,ocupados,desocupados,pob,pea,ocupada,tra_omun,tot_est,est_e_a,est_n_e_a,tot_p_o,po_e_a,po_n_e_a,comida_carta_corrida,antojitos,pescados_mariscos,comida_rapida,tacos_tortas,autoservicio,otro_tipo_alimentos,CVEGEO,amenazas,danio_propiedad,extorsion,robo_negocio
 1001,1,Aguascalientes,1,Aguascalientes,877190,7676.46,300564,24836,974529,382550,367528,9344,46426,23283,23142,334896,153478,181418,402,2092,192,506,1046,96,338,1001,3010,3370,88,1669
 1002,1,Aguascalientes,2,Asientos,46464,5863.52,8138,693,51383,13914,13108,3585,989,549,440,5165,2023,3142,6,44,3,11,37,0,5,1002,96,116,1,45
 1003,1,Aguascalientes,3,Calvillo,56048,5784.97,14757,199,61389,20099,19352,298,3280,1750,1529,14944,7370,7573,14,122,4,26,58,2,4,1003,60,139,3,54
