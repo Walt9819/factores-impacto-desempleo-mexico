@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
+import numpy as np
 
 from tqdm import tqdm
 
@@ -37,7 +38,6 @@ class MainModel():
         -------------------------------------------------------------------------------------
         Params:
         Name                    |Type               |Description
-
         dataset(optional)       |Dict               |Dictionary with `x` and `y` keys for
                                                     |input and label data of iterable type.
         split_at(default=0.3)   |float              |Size of test set where to split data.
@@ -69,11 +69,13 @@ class MainModel():
         -------------------------------------------------------------------------------------
         Output:
         Name                    |Type               |Description
-
         models                  |torch.nn.Module    |List with each trained model for given
                                                     |training parameters.
         -------------------------------------------------------------------------------------
         """
+
+        import torch.optim as optim
+
         ####### VALIDATIONS #######
         # Dataset validation
         if not dataset:
@@ -125,34 +127,42 @@ class MainModel():
         ### categories validation
         self.categories = self.validateData(kwargs, "categories", None)
         if not self.categories:
-            raise ValueError("Yo need at least two categories to be predicted")
+            #if (self.categories := len(torch.unique(y))) > 2: # might work on python 3.8
+            self.categories = len(np.unique(y))
+            if not self.categories >= 2:
+                raise ValueError("You need at least two categories to be predicted")
 
         ####### DATA PREPARATION ######
         self.random_state = random_state
         # Get x and y
         self.xtrn = None; self.xtst = None; self.ytrn = None; self.ytst = None;
-        self._splitData() # split data
+        self._splitData(x, y) # split data
 
         ###### TRAINING ########
         for opt in tqdm(self.optimizers):
             for lr in tqdm(self.lr):
-                model = self.model(self.categories) if self.model == RestaurantsDNN else self.model()
-                optim = opt(model.parameters(), lr=lr)
-                model = ModelTraining(model, optimizer=optim, lossFunction=self.lossFunction,
-                            epochs=self.epochs, η=self.lr, k_folds=self.k, categories=self.categories)
-                if self.scheduler:
-                    scheduler = self.scheduler(optim, 'min', verbose=True)
-                    model.scheduler = scheduler
+                for epoch in tqdm(self.epochs):
+                    model = self.model(self.xtrn.size()[1]) if self.model == RestaurantsDNN else self.model()
+                    optim = opt(model.parameters(), lr=lr)
+                    model = ModelTraining(model, optimizer=opt, lossFunction=self.lossFunction,
+                                epochs=epoch, η=lr, k_folds=self.k, categories=self.categories)
+                    if self.scheduler:
+                        scheduler = self.scheduler(optim, 'min', verbose=True)
+                        model.scheduler = scheduler
 
-                trainedModel = model.trainModel(self.xtrn, self.ytrn)
-                modelPerformance = ModelPerformance(trainedModel, self.categories)
-                print(f"Performance over training set is: {modelPerformance.modelEvaluation(self.xtrn, self.ytrn)}")
-                print(f"Performance over test set is: {modelPerformance.modelEvaluation(self.xtst, self.ytst)}")
+                    trainedModel = model.trainModel(self.xtrn, self.ytrn)
+                    modelPerformance = ModelPerformance(trainedModel, self.categories)
+                    modelPerformance.modelEvaluation(self.xtrn, self.ytrn)
+                    print(f"Performance over training set is:\n")
+                    modelPerformance.display()
+                    modelPerformance.modelEvaluation(self.xtst, self.ytst)
+                    print(f"Performance over test set is:")
+                    modelPerformance.display()
 
 
 
 
-    def _splitData(self):
+    def _splitData(self, x, y):
         """
         Split given data into train and test set (**read only**) method.
         -------------------------------------------------------------------------------------
@@ -165,20 +175,20 @@ class MainModel():
         """
         # Split datasets into train and test
         if self.random_state:
-            xTrn, xTst, yTrn, yTst = train_test_split(x, y, test_size=split_at, random_state=self.random_state)
+            xTrn, xTst, yTrn, yTst = train_test_split(x, y, test_size=self.split_at, random_state=self.random_state)
         else:
-            xTrn, xTst, yTrn, yTst = train_test_split(x, y, test_size=split_at)
+            xTrn, xTst, yTrn, yTst = train_test_split(x, y, test_size=self.split_at)
 
         # Convert data into torch tensors as floats
-        self.xtrn = torch.tensor(x_train).type(torch.FloatTensor); self.xtst = torch.tensor(x_test).type(torch.FloatTensor);
-        self.ytrn = torch.tensor(y_train).type(torch.FloatTensor); self.ytst = torch.tensor(y_test).type(torch.FloatTensor);
+        self.xtrn = torch.tensor(xTrn).type(torch.FloatTensor); self.xtst = torch.tensor(xTst).type(torch.FloatTensor);
+        self.ytrn = torch.tensor(yTrn).type(torch.FloatTensor); self.ytst = torch.tensor(yTst).type(torch.FloatTensor);
 
     def validateData(self, kwargs, key, default):
         val = None
         try:
             val = kwargs[key]
         except KeyError:
-            val = dafault
+            val = default
             pass
         except:
             print("Unexpected error:", sys.exc_info()[0])
@@ -193,7 +203,6 @@ class ModelPerformance():
         -------------------------------------------------------------------------------------
         Params:
         Name                    |Type               |Description
-
         model                   |torch.nn.Module    |Model to be tested.
         categories(default=2)   |iterable           |Number of categories to be predicted.
         -------------------------------------------------------------------------------------
@@ -203,6 +212,7 @@ class ModelPerformance():
         """
         self.model = model
         self.categories = categories
+        self.evals = {}
 
 
     def modelEvaluation(self, x, y):
@@ -211,13 +221,11 @@ class ModelPerformance():
         -------------------------------------------------------------------------------------
         Params:
         Name                    |Type               |Description
-
         x                       |iterable           |Input data.
         y                       |iterable           |Labels data.
         -------------------------------------------------------------------------------------
         Output:
         Name                    |Type               |Description
-
         evals                   |Dict               |Dictionary with keys for each available
                                                     |performance test ("acc": accuracy), if
                                                     |`categories` is equal to 2, more tests given
@@ -226,22 +234,31 @@ class ModelPerformance():
         """
         if x.size()[0] != y.size()[0]:
             raise ValueError(f"Mismatched dimensions: input dimension is {x.size()[0]} and labels input is {y.size()[0]}")
-        evals = Dict()
-        with torch.no_grads():
+        with torch.no_grad():
             sizeY = y.size()[0]
             pred = self.model(x) # predictions
             pred = pred.view(pred.size()[0]) # Reshape predictions
             acc = sum(torch.round(pred * self.categories) / self.categories == y) # perform accuracy
-            evals["acc"] = acc / sizeY
+            self.evals["Accuracy"] = acc / sizeY
+            print(f"True values: {sum(y)}")
             if self.categories == 2:
                 TPRes = torch.round(pred) * y
+                print(f"Pred is: {pred[:40]}")
+                print(f"Pred is: {torch.round(pred[:40])}")
+                print(f"y is: {y[:40]}")
+                print(f"TP is: {TPRes[:40]}")
                 TP = sum(TPRes) # ∑ (yŷ)
                 FP = abs(sum(TPRes - pred)) # |∑ (yŷ - ̂y)|
                 FN = abs(sum(TPRes - y)) # |∑ (yŷ - y)|
                 TN = sizeY - FP + FN + TP # sum(y + ̂y - TP) - sizeY
-                evals["sens"] = TP / (TP + TN)
-                evals["spec"] = TN / (TN + FP)
-        return evals
+                print(f"TP: {TP}. FP: {FP} FN: {FN} TN: {TN}")
+                self.evals["Sensitivity"] = TP / (TP + TN)
+                self.evals["Specificity"] = TN / (TN + FP)
+        return self.evals
+
+    def display(self):
+        for key, val in self.evals.items():
+            print("{}\t\t:\t\t{:.4f}".format(key, val))
 
 
 
@@ -249,14 +266,14 @@ class ModelTraining():
     def __init__(self, model, optimizer=None, lossFunction=None, scheduler=None, epochs=30, η=0.01, k_folds=False, categories=2):
         self.epochs = epochs
         self.η = η
-        self.optim = optim.SGD()
+        self.model = model
+        self.optim = optim.SGD(model.parameters(), lr=self.η)
         self.lossFunction = nn.BCELoss()
         self.k = k_folds
-        self.model = model
         self.categories = categories
         self.scheduler = scheduler
 
-        if self.k_folds:
+        if self.k:
             kf = KFold(n_splits=self.k)
             self.k_folds = kf.get_n_splits(x).split(x, y)
         else:
@@ -264,8 +281,8 @@ class ModelTraining():
                 print("WARNING: Scheduler will be ignored beacuse there's no k_folds value given")
 
     def trainModel(self, x, y):
-        print(f"Training model for {self.epochs} epochs...")
-        for epoch in tqdm(range(self.epochs)):
+        print(f"\nTraining model for {self.epochs} epochs...")
+        for epoch in range(self.epochs):
             if self.k:
                 trnInd, valInd = self.k_folds[epochs % k]
                 xTrn = x[trnInd]; yTrn = y[trnInd];
@@ -275,22 +292,28 @@ class ModelTraining():
             self.optim.zero_grad()
             pred = self.model(xTrn)
             pred = pred.view(pred.size()[0]) # Reshape predictions
-            loss = self.lossFunction(pred, x)
+            loss = self.lossFunction(pred, y)
             loss.backward() # Backpropagate
             self.optim.step() # Update params
             acc = self.modelAccuracy(yTrn, pred)
-            #print(f"Trn set:\nepoch: {epoch} loss: {loss} Acc: {acc}"
+            if epoch % 100 == 0:
+              print(f"Epoch: {epoch} Loss: {loss:.4f} Acc: {acc:.4f}")
             if self.scheduler and self.k:
                 pred = self.model(xVal)
                 pred = pred.view(pred.size()[0]) # Reshape predictions
                 acc = self.modelAccuracy(yVal, pred)
                 #print(f"Val set:\nepoch: {epoch} loss: {loss} Acc: {acc}"
                 self.scheduler.step(loss.item())
-        performance = ModelPerformance(self.model, self.categories)
-        print(f"Trained model performance :\n{performance}")
+        modelEvaluator = ModelPerformance(self.model, self.categories)
+        performance = modelEvaluator.modelEvaluation(xTrn, yTrn)
+        print(f"\nTrained model performance :")
+        modelEvaluator.display()
+        yT = [(y[i], pred[i]) for i in range(y.size()[0]) if y[i] == 1]
+        print(yT)
         return self.model
 
 
     def modelAccuracy(self, y, pred):
         acc = sum(torch.round(pred * self.categories) / self.categories == y) # perform accuracy
-        return acc /= y.size()[0]
+        return acc / y.size()[0]
+  
