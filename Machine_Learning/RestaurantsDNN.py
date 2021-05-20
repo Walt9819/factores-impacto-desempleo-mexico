@@ -54,6 +54,8 @@ class MainModel():
         optimizer(default=adam) |torch.optim/list   |Torch optimizer or optimizers to use
                                                     |while training. If multiple given,
                                                     |one training will be made for each.
+        loss_function           |torch.nn           |Torch loss function to be used while
+        (default=BCELoss)                           |training.
         lr(default=0.01)        |float/list         |Learning rate (η) used on optimizer
                                                     |update step algorithm. If multiple
                                                     |given, one training will be done
@@ -63,6 +65,7 @@ class MainModel():
                                                     |will be done for each.
         scheduler(optional)     |torch.optim.       |Learning rate scheduler used while
                                 |lr_scheduler       |training model.
+        categories(optional)    |int                |number of categories to be predicted
         -------------------------------------------------------------------------------------
         Output:
         Name                    |Type               |Description
@@ -71,10 +74,6 @@ class MainModel():
                                                     |training parameters.
         -------------------------------------------------------------------------------------
         """
-        self.random_state = random_state
-        # Get x and y from given params
-        self.xtrn = None; self.xtst = None; self.ytrn = None; xelf.ytst = None;
-
         ####### VALIDATIONS #######
         # Dataset validation
         if not dataset:
@@ -92,90 +91,64 @@ class MainModel():
             raise ValueError("split_at must be a number between 0 and 1")
         self.split_at = split_at
 
-        # Get if k fold cross validations is required
-        try:
-            self.k = kwargs["k_folds"]
-        except KeyError:
-            self.k = None
-            pass
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            raise
+
+        # Get if KFold cross validations is required
+        self.k = self.validateData(kwargs, "k_folds", None)
 
         # model validation
-        try:
-            self.model = kwargs["model"]
-        except KeyError:
-            self.model = RestaurantsDNN
-            pass
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            raise
+        self.model = self.validateData(kwargs, "model", RestaurantsDNN)
 
-        # optimizer validation
-        try:
-            self.optimizers = kwargs["optimizers"]
-        except KeyError:
-            self.optimizers = optim.Adam
-            pass
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            raise
-
+        ### optimizer validation
+        self.optimizers = self.validateData(kwargs, "optimizers", optim.Adam)
         # If only one given, make it into a list
         if not hasattr(self.optimizers, '__iter__'):
             self.optimizers = [self.optimizers]
 
-        # learning rate validation
-        try:
-            self.lr = kwargs["lr"]
-        except KeyError:
-            self.lr = 0.01
-            pass
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            raise
+        ### loss function validation
+        self.lossFunction = self.validateData(kwargs, "loss_function", nn.BCELoss)
 
+        ### learning rate validation
+        self.lr = self.validateData(kwargs, "lr", 0.01)
         # If only one given, make it into a list
         if not hasattr(self.lr, '__iter__'):
             self.lr = [self.lr]
 
-        # learning rate validation
-        try:
-            self.epochs = kwargs["epochs"]
-        except KeyError:
-            self.lr = 30
-            pass
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            raise
-
+        ### epochs validation
+        self.epochs = self.validateData(kwargs, "epochs", 30)
         # If only one given, make it into a list
         if not hasattr(self.epochs, '__iter__'):
             self.epochs = [self.epochs]
 
-        # scheduler validation
-        try:
-            self.scheduler = kwargs["scheduler"]
-        except KeyError:
-            self.scheduler = None
-            pass
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            raise
+        ### scheduler validation
+        self.scheduler = self.validateData(kwargs, "scheduler", None)
+
+        ### categories validation
+        self.categories = self.validateData(kwargs, "categories", None)
+        if not self.categories:
+            raise ValueError("Yo need at least two categories to be predicted")
 
         ####### DATA PREPARATION ######
+        self.random_state = random_state
+        # Get x and y
+        self.xtrn = None; self.xtst = None; self.ytrn = None; self.ytst = None;
         self._splitData() # split data
-
-        ####### MODEL CREATION #######
-        if self.model == RestaurantsDNN:
-            categs = len(torch.unique)
 
         ###### TRAINING ########
         for opt in tqdm(self.optimizers):
             for lr in tqdm(self.lr):
-                model = self.model(categs) if self.model == RestaurantsDNN else self.model()
+                model = self.model(self.categories) if self.model == RestaurantsDNN else self.model()
                 optim = opt(model.parameters(), lr=lr)
+                model = ModelTraining(model, optimizer=optim, lossFunction=self.lossFunction,
+                            epochs=self.epochs, η=self.lr, k_folds=self.k, categories=self.categories)
+                if self.scheduler:
+                    scheduler = self.scheduler(optim, 'min', verbose=True)
+                    model.scheduler = scheduler
+
+                trainedModel = model.trainModel(self.xtrn, self.ytrn)
+                modelPerformance = ModelPerformance(trainedModel, self.categories)
+                print(f"Performance over training set is: {modelPerformance.modelEvaluation(self.xtrn, self.ytrn)}")
+                print(f"Performance over test set is: {modelPerformance.modelEvaluation(self.xtst, self.ytst)}")
+
 
 
 
@@ -191,15 +164,26 @@ class MainModel():
         -------------------------------------------------------------------------------------
         """
         # Split datasets into train and test
-        xTrn, xTst, yTrn, yTst = train_test_split(x, y, test_size=split_at, random_state=random_state)
+        if self.random_state:
+            xTrn, xTst, yTrn, yTst = train_test_split(x, y, test_size=split_at, random_state=self.random_state)
+        else:
+            xTrn, xTst, yTrn, yTst = train_test_split(x, y, test_size=split_at)
 
         # Convert data into torch tensors as floats
         self.xtrn = torch.tensor(x_train).type(torch.FloatTensor); self.xtst = torch.tensor(x_test).type(torch.FloatTensor);
         self.ytrn = torch.tensor(y_train).type(torch.FloatTensor); self.ytst = torch.tensor(y_test).type(torch.FloatTensor);
 
-
-mod = RestaurantsDNN(10)
-opt = torch.optim.SGD(mod.parameters(), lr=0.3)
+    def validateData(self, kwargs, key, default):
+        val = None
+        try:
+            val = kwargs[key]
+        except KeyError:
+            val = dafault
+            pass
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            raise
+        return val
 
 
 class ModelPerformance():
