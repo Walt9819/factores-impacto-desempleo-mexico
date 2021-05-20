@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
 
+from tqdm import tqdm
 
 class RestaurantsDNN(nn.Module):
     def __init__(self, inputNeurons):
@@ -45,13 +46,21 @@ class MainModel():
                                                     |Input data.
         y(optional)             |iterable           |**Only used if `dataset` not given**.
                                                     |Labels data.
+        k_folds(dafault=0)      |int                |Number of k_folds to be created if
+                                                    |KFolds cross validation algorithm
+                                                    |will be performed.
+        model                   |torch.nn.Module    |Model class to be trained.
+        (default=RestaurantsDNN)
         optimizer(default=adam) |torch.optim/list   |Torch optimizer or optimizers to use
                                                     |while training. If multiple given,
                                                     |one training will be made for each.
-        lr(default=0.0.1)       |float/list         |Learning rate (η) used on optimizer
+        lr(default=0.01)        |float/list         |Learning rate (η) used on optimizer
                                                     |update step algorithm. If multiple
                                                     |given, one training will be done
                                                     |for each on each optimizer given.
+        epochs(default=30)      |int/list           |Number of epochs used on training
+                                                    |loop. If multiple given, one training
+                                                    |will be done for each.
         scheduler(optional)     |torch.optim.       |Learning rate scheduler used while
                                 |lr_scheduler       |training model.
         -------------------------------------------------------------------------------------
@@ -62,10 +71,11 @@ class MainModel():
                                                     |training parameters.
         -------------------------------------------------------------------------------------
         """
-        # Get x and y from given params
-        self.split_at = split_at
         self.random_state = random_state
+        # Get x and y from given params
         self.xtrn = None; self.xtst = None; self.ytrn = None; xelf.ytst = None;
+
+        ####### VALIDATIONS #######
         # Dataset validation
         if not dataset:
             try:
@@ -76,21 +86,97 @@ class MainModel():
         else:
             x = dataset["x"]
             y = dataset["y"]
+
         # Split validation
-        if self.split_at > 1:
+        if split_at > 1:
             raise ValueError("split_at must be a number between 0 and 1")
+        self.split_at = split_at
 
         # Get if k fold cross validations is required
         try:
-            k = kwargs["k_folds"]
+            self.k = kwargs["k_folds"]
         except KeyError:
-            k = None
+            self.k = None
             pass
         except:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
-        self.splitData() # split data
+        # model validation
+        try:
+            self.model = kwargs["model"]
+        except KeyError:
+            self.model = RestaurantsDNN
+            pass
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            raise
+
+        # optimizer validation
+        try:
+            self.optimizers = kwargs["optimizers"]
+        except KeyError:
+            self.optimizers = optim.Adam
+            pass
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            raise
+
+        # If only one given, make it into a list
+        if not hasattr(self.optimizers, '__iter__'):
+            self.optimizers = [self.optimizers]
+
+        # learning rate validation
+        try:
+            self.lr = kwargs["lr"]
+        except KeyError:
+            self.lr = 0.01
+            pass
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            raise
+
+        # If only one given, make it into a list
+        if not hasattr(self.lr, '__iter__'):
+            self.lr = [self.lr]
+
+        # learning rate validation
+        try:
+            self.epochs = kwargs["epochs"]
+        except KeyError:
+            self.lr = 30
+            pass
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            raise
+
+        # If only one given, make it into a list
+        if not hasattr(self.epochs, '__iter__'):
+            self.epochs = [self.epochs]
+
+        # scheduler validation
+        try:
+            self.scheduler = kwargs["scheduler"]
+        except KeyError:
+            self.scheduler = None
+            pass
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            raise
+
+        ####### DATA PREPARATION ######
+        self._splitData() # split data
+
+        ####### MODEL CREATION #######
+        if self.model == RestaurantsDNN:
+            categs = len(torch.unique)
+
+        ###### TRAINING ########
+        for opt in tqdm(self.optimizers):
+            for lr in tqdm(self.lr):
+                model = self.model(categs) if self.model == RestaurantsDNN else self.model()
+                optim = opt(model.parameters(), lr=lr)
+
 
 
     def _splitData(self):
@@ -110,6 +196,10 @@ class MainModel():
         # Convert data into torch tensors as floats
         self.xtrn = torch.tensor(x_train).type(torch.FloatTensor); self.xtst = torch.tensor(x_test).type(torch.FloatTensor);
         self.ytrn = torch.tensor(y_train).type(torch.FloatTensor); self.ytst = torch.tensor(y_test).type(torch.FloatTensor);
+
+
+mod = RestaurantsDNN(10)
+opt = torch.optim.SGD(mod.parameters(), lr=0.3)
 
 
 class ModelPerformance():
@@ -170,30 +260,50 @@ class ModelPerformance():
         return evals
 
 
+
 class ModelTraining():
-    def __init__(self, model, optimizer=None, lossFunction=None, epochs=30, η=0.01, k_folds=False, categories=2):
+    def __init__(self, model, optimizer=None, lossFunction=None, scheduler=None, epochs=30, η=0.01, k_folds=False, categories=2):
         self.epochs = epochs
         self.η = η
         self.optim = optim.SGD()
         self.lossFunction = nn.BCELoss()
-        self.k_folds = k_folds
+        self.k = k_folds
         self.model = model
         self.categories = categories
+        self.scheduler = scheduler
 
+        if self.k_folds:
+            kf = KFold(n_splits=self.k)
+            self.k_folds = kf.get_n_splits(x).split(x, y)
+        else:
+            if self.scheduler:
+                print("WARNING: Scheduler will be ignored beacuse there's no k_folds value given")
 
     def trainModel(self, x, y):
         print(f"Training model for {self.epochs} epochs...")
-        for epoch in range(self.epochs):
+        for epoch in tqdm(range(self.epochs)):
+            if self.k:
+                trnInd, valInd = self.k_folds[epochs % k]
+                xTrn = x[trnInd]; yTrn = y[trnInd];
+                xVal = x[valInd]; yVal = y[valInd];
+            else:
+                xTrn = x; yTrn = y;
             self.optim.zero_grad()
-            pred = self.model(x)
+            pred = self.model(xTrn)
             pred = pred.view(pred.size()[0]) # Reshape predictions
             loss = self.lossFunction(pred, x)
             loss.backward() # Backpropagate
             self.optim.step() # Update params
-            acc = model.modelAccuracy(y, pred)
-            #print(f"epoch: {epoch} loss: {loss} Acc: {acc}"
+            acc = self.modelAccuracy(yTrn, pred)
+            #print(f"Trn set:\nepoch: {epoch} loss: {loss} Acc: {acc}"
+            if self.scheduler and self.k:
+                pred = self.model(xVal)
+                pred = pred.view(pred.size()[0]) # Reshape predictions
+                acc = self.modelAccuracy(yVal, pred)
+                #print(f"Val set:\nepoch: {epoch} loss: {loss} Acc: {acc}"
+                self.scheduler.step(loss.item())
         performance = ModelPerformance(self.model, self.categories)
-        print(f"Trained net performance is:\n{performance}")
+        print(f"Trained model performance :\n{performance}")
         return self.model
 
 
