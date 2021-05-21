@@ -6,31 +6,6 @@ import numpy as np
 
 from tqdm import tqdm
 
-class RestaurantsDNN(nn.Module):
-    def __init__(self, inputNeurons):
-        super().__init__()
-        self.relu = nn.ReLU()
-        self.inputNeurons = inputNeurons
-        self.input = nn.Linear(inputNeurons, 15)
-        self.f1 = nn.Linear(15, 10)
-        self.tanh = nn.Tanh()
-        self.dropout = nn.Dropout(0.25) # dropput layer with 0.25 prob
-        self.f2 = nn.Linear(10, 5)
-        self.output = nn.Linear(5, 1)
-        self.sigmoid = nn.Sigmoid()
-
-
-    def forward(self, x):
-        x = self.tanh(self.input(x))
-        x = self.tanh(self.f1(x))
-        x = self.dropout(x)
-        x = self.tanh(self.f2(x))
-        x = self.dropout(x)
-        x = self.output(x)
-        return self.sigmoid(x) # probability activation layer (softmax like)
-
-
-
 class MainModel():
     def __init__(self, dataset=None, split_at=0.3, random_state=None, **kwargs):
         """
@@ -138,7 +113,19 @@ class MainModel():
         self.xtrn = None; self.xtst = None; self.ytrn = None; self.ytst = None;
         self._splitData(x, y) # split data
 
-        ###### TRAINING ########
+
+    def trainModels(self):
+        """
+        Train models from given params inside instance.
+        -------------------------------------------------------------------------------------
+        Params:
+        Name                    |Type               |Description
+        -------------------------------------------------------------------------------------
+        Output:
+        Name                    |Type               |Description
+        -------------------------------------------------------------------------------------
+        """
+        models = []
         for opt in tqdm(self.optimizers):
             for lr in tqdm(self.lr):
                 for epoch in tqdm(self.epochs):
@@ -151,6 +138,7 @@ class MainModel():
                         model.scheduler = scheduler
 
                     trainedModel = model.trainModel(self.xtrn, self.ytrn)
+                    models.append(trainedModel)
                     modelPerformance = ModelPerformance(trainedModel, self.categories)
                     modelPerformance.modelEvaluation(self.xtrn, self.ytrn)
                     print(f"Performance over training set is:\n")
@@ -158,7 +146,7 @@ class MainModel():
                     modelPerformance.modelEvaluation(self.xtst, self.ytst)
                     print(f"Performance over test set is:")
                     modelPerformance.display()
-
+        return models
 
 
 
@@ -240,18 +228,12 @@ class ModelPerformance():
             pred = pred.view(pred.size()[0]) # Reshape predictions
             acc = sum(torch.round(pred * self.categories) / self.categories == y) # perform accuracy
             self.evals["Accuracy"] = acc / sizeY
-            print(f"True values: {sum(y)}")
             if self.categories == 2:
                 TPRes = torch.round(pred) * y
-                print(f"Pred is: {pred[:40]}")
-                print(f"Pred is: {torch.round(pred[:40])}")
-                print(f"y is: {y[:40]}")
-                print(f"TP is: {TPRes[:40]}")
                 TP = sum(TPRes) # ∑ (yŷ)
                 FP = abs(sum(TPRes - pred)) # |∑ (yŷ - ̂y)|
                 FN = abs(sum(TPRes - y)) # |∑ (yŷ - y)|
                 TN = sizeY - FP + FN + TP # sum(y + ̂y - TP) - sizeY
-                print(f"TP: {TP}. FP: {FP} FN: {FN} TN: {TN}")
                 self.evals["Sensitivity"] = TP / (TP + TN)
                 self.evals["Specificity"] = TN / (TN + FP)
         return self.evals
@@ -273,18 +255,22 @@ class ModelTraining():
         self.categories = categories
         self.scheduler = scheduler
 
+    def trainModel(self, x, y):
         if self.k:
+            from sklearn.model_selection import KFold
             kf = KFold(n_splits=self.k)
-            self.k_folds = kf.get_n_splits(x).split(x, y)
+            k_folds = kf.split(x, y)
         else:
             if self.scheduler:
                 print("WARNING: Scheduler will be ignored beacuse there's no k_folds value given")
-
-    def trainModel(self, x, y):
         print(f"\nTraining model for {self.epochs} epochs...")
         for epoch in range(self.epochs):
             if self.k:
-                trnInd, valInd = self.k_folds[epochs % k]
+                index = next(iter(k_folds), None)
+                if index == None:
+                  k_folds = KFold(n_splits=self.k).split(x, y)
+                  index = next(iter(k_folds), None)
+                trnInd, valInd = index
                 xTrn = x[trnInd]; yTrn = y[trnInd];
                 xVal = x[valInd]; yVal = y[valInd];
             else:
@@ -292,28 +278,27 @@ class ModelTraining():
             self.optim.zero_grad()
             pred = self.model(xTrn)
             pred = pred.view(pred.size()[0]) # Reshape predictions
-            loss = self.lossFunction(pred, y)
+            loss = self.lossFunction(pred, yTrn)
             loss.backward() # Backpropagate
             self.optim.step() # Update params
             acc = self.modelAccuracy(yTrn, pred)
             if epoch % 100 == 0:
-              print(f"Epoch: {epoch} Loss: {loss:.4f} Acc: {acc:.4f}")
-            if self.scheduler and self.k:
+              print(f"Trn set:\nEpoch: {epoch} Loss: {loss:.4f} Acc: {acc:.4f}")
+            if self.k:
                 pred = self.model(xVal)
                 pred = pred.view(pred.size()[0]) # Reshape predictions
                 acc = self.modelAccuracy(yVal, pred)
-                #print(f"Val set:\nepoch: {epoch} loss: {loss} Acc: {acc}"
-                self.scheduler.step(loss.item())
+                if epoch % 100 == 0:
+                  print(f"Val set:\nEpoch: {epoch} loss: {loss:.4f} Acc: {acc:.4f}")
+                if self.scheduler:
+                  self.scheduler.step(loss.item())
         modelEvaluator = ModelPerformance(self.model, self.categories)
         performance = modelEvaluator.modelEvaluation(xTrn, yTrn)
         print(f"\nTrained model performance :")
         modelEvaluator.display()
-        yT = [(y[i], pred[i]) for i in range(y.size()[0]) if y[i] == 1]
-        print(yT)
         return self.model
 
 
     def modelAccuracy(self, y, pred):
         acc = sum(torch.round(pred * self.categories) / self.categories == y) # perform accuracy
         return acc / y.size()[0]
-  
