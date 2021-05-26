@@ -6,6 +6,33 @@ import numpy as np
 
 from tqdm import tqdm
 
+import torch.nn as nn
+
+
+class RestaurantsDNN(nn.Module):
+    def __init__(self, inputNeurons):
+        super().__init__()
+        self.relu = nn.ReLU()
+        self.inputNeurons = inputNeurons
+        self.input = nn.Linear(inputNeurons, 100)
+        self.f1 = nn.Linear(100, 150)
+        self.tanh = nn.Tanh()
+        self.dropout = nn.Dropout(0.3) # dropput layer with 0.3 prob
+        self.f2 = nn.Linear(150, 50)
+        self.output = nn.Linear(50, 1)
+        self.sigmoid = nn.Sigmoid()
+
+
+    def forward(self, x):
+        x = self.tanh(self.input(x))
+        x = self.relu(self.f1(x))
+        x = self.dropout(x)
+        x = self.relu(self.f2(x))
+        x = self.dropout(x)
+        x = self.output(x)
+        return self.sigmoid(x) # probability activation layer (softmax like)
+
+
 class MainModel():
     def __init__(self, dataset=None, split_at=0.3, random_state=None, **kwargs):
         """
