@@ -230,7 +230,7 @@ class ModelPerformance():
         self.evals = {}
 
 
-    def modelEvaluation(self, x, y):
+    def modelEvaluation(self, x, y, matrix_plot=False):
         """
         Evaluate model performance for given data
         -------------------------------------------------------------------------------------
@@ -238,13 +238,15 @@ class ModelPerformance():
         Name                    |Type               |Description
         x                       |iterable           |Input data.
         y                       |iterable           |Labels data.
+        matrix_plot             |bool               |Flag if confussion matrix will be ploted.
+        labels (optional)       |iterable           |Iterable with labels to be ploted.
         -------------------------------------------------------------------------------------
         Output:
         Name                    |Type               |Description
         evals                   |Dict               |Dictionary with keys for each available
-                                                    |performance test ("acc": accuracy), if
+                                                    |performance test (accuracy), if
                                                     |`categories` is equal to 2, more tests given
-                                                    |("sens": sensitivity, "spec": specificity).
+                                                    |(sensitivity and specificity).
         -------------------------------------------------------------------------------------
         """
         if x.size()[0] != y.size()[0]:
@@ -261,9 +263,29 @@ class ModelPerformance():
                 FP = abs(sum(TPRes - pred)) # |∑ (yŷ - ̂y)|
                 FN = abs(sum(TPRes - y)) # |∑ (yŷ - y)|
                 TN = sizeY - FP + FN + TP # sum(y + ̂y - TP) - sizeY
-                self.evals["Sensitivity"] = TP / (TP + TN)
+                self.evals["Sensitivity"] = TP / (TP + FN)
                 self.evals["Specificity"] = TN / (TN + FP)
+            if matrix_plot:
+                confMat = [[0 for i in range(self.categories)] for j in range(self.categories)]
+                for i in range(sizeY):
+                    confMat[pr[i]][y[i]] += 1
+                self.plotConfMatrix(confMat) if not labels else self.plotConfMatrix(confMat, labels)
         return self.evals
+
+
+    def plotConfMatrix(self, confMatrix, labels=None):
+        import seaborn as sns
+        if labels:
+            x_axis_labels = labels # labels for x-axis
+            y_axis_labels = labels # labels for y-axis
+            ax = sns.heatmap(confMatrix, cmap="Blues", annot=True, fmt="d", xticklabels=x_axis_labels, yticklabels=y_axis_labels)
+        else:
+            ax = sns.heatmap(confMatrix, cmap="Blues", annot=True, fmt="d")
+        plt.xlabel("Predicted label")
+        plt.ylabel("True label")
+        plt.title("Confusion matrix");
+        plt.show()
+
 
     def display(self):
         for key, val in self.evals.items():
