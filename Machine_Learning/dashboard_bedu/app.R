@@ -8,6 +8,14 @@ library(dplyr)
 library(reshape2)
 library(ggplot2)
 library(plotly)
+library(leaflet)
+library(rgdal)
+
+setwd("C:/Users/BALAMLAPTOP2/Documents/GitHub/factores-impacto-desempleo-mexico/Machine_Learning/dashboard_bedu")
+mexico <- rgdal::readOGR("data/mun2019gw.shp")
+
+data_km_pca <- read.csv("data/results_kmeans_pca.csv", header = T,encoding = "UTF-8")
+
 
 ui <- fluidPage(
   
@@ -66,7 +74,16 @@ ui <- fluidPage(
                     height = 1050
                   )
                   
-                )
+                ),
+                fluidRow(
+                  box(
+                    title = "Número de casos positivos con COVID-19 por entidad",
+                    status = "primary",
+                    leafletOutput("mapMexico"),
+                    #height = 700,
+                    width = "100%"
+                  )
+                ),
         ),
         
         #===============================tabItem===============================
@@ -184,6 +201,30 @@ server <- function(input, output) {
       }
     }
     
+  })
+  
+  output$mapMexico <- renderLeaflet({
+    #allCovidData$cve_ent <- substr(allCovidData$imun,1,nchar(allCovidData$imun)-3)
+    
+    #covid_chart1 <- allCovidData %>% group_by(cve_ent) %>% summarise(casos = sum(casos_diarios))
+    #covid_chart1 <- na.omit(covid_chart1)
+    #covid_chart1$fips <- sprintf("%02d", as.numeric(covid_chart1$cve_ent))
+    #covid_chart1$fips <- paste0("MX", covid_chart1$fips)
+    data_km_pca$CVEGEO <- as.character(data_km_pca$CVEGEO)
+    data_km_pca$CVEGEO <- sprintf("%05d", as.numeric(data_km_pca$CVEGEO))
+    
+    mapamexico <- merge(mexico, data_km_pca, by = "CVEGEO", all.x = TRUE, duplicateGeoms = TRUE)
+    
+    mapamexico$label <- as.factor(mapamexico$label)
+    
+    factpal <- colorFactor(c("#FF4C4C", "#E9E946"), mapamexico$label)
+    
+    #pal <- colorNumeric("viridis", NULL)
+    
+    leaflet(mapamexico) %>%
+      addTiles() %>%
+      addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1, color = ~factpal(label),
+                  label = ~paste0(NOM_MUN, ": ", formatC(pobtot, big.mark = ",")))
   })
   
   #===============================Outputs=========================
