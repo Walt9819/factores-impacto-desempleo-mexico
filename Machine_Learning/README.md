@@ -12,7 +12,9 @@ Adicional, ofrece a los usuarios una visualización predictiva del escenario sob
 ## 2. Preguntas de investigación
 
 ¿Cuáles son los municipios donde sería más viable abrir un restaurante? 
+
 ¿Cuál es la categoría de restaurantes más común en México? 
+
 ¿Este resultado cambia al analizarlo por entidad federativa?
 
 
