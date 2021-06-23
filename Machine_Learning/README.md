@@ -28,5 +28,7 @@ Adicional, ofrece a los usuarios una visualización predictiva del escenario sob
 [Jupiter Notebook](ML_restaurantes_2clusters.ipynb/)
 
 
-## 5. Dashboard
+## 5. Prototype day
+[Presentación](https://docs.google.com/presentation/d/1-0n3-Qll5lPGU0UZ-KHuFk83DolTNB7-yl0T3cAeUIc/edit?usp=sharing)
+
 [Dashboard]()
