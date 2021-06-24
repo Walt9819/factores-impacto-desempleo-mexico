@@ -11,10 +11,14 @@ library(plotly)
 library(leaflet)
 library(rgdal)
 
-setwd("C:/Users/BALAMLAPTOP2/Documents/GitHub/factores-impacto-desempleo-mexico/Machine_Learning/dashboard_bedu")
+#setwd("C:/Users/BALAMLAPTOP2/Documents/GitHub/factores-impacto-desempleo-mexico/Machine_Learning/dashboard_bedu")
 mexico <- rgdal::readOGR("data/mun2019gw.shp")
 
 data_km_pca <- read.csv("data/results_kmeans_pca.csv", header = T,encoding = "UTF-8")
+
+cat_ent <- data_km_pca %>% group_by(ent, nom_ent) %>% summarize(n())
+
+cat_ent <- setNames(cat_ent$ent, cat_ent$nom_ent)
 
 linebreaks <- function(n){HTML(strrep(br(), n))}
 
@@ -91,7 +95,8 @@ ui <- fluidPage(
                 ),
                 fluidRow(
                   box(
-                    title = "Número de casos positivos con COVID-19 por entidad",
+                    title = "Municipios",
+                    selectInput(inputId = "opt_ent",label = "Seleccionar Opción",choices = cat_ent, selected = "9"),
                     "Visualización del mapa estatico.", linebreaks(2),
                     "Grupo 0(Color rojo): el número de municipios contenidos corresponde a 2,357, los cuales presentan un bajo número del total de población, por lo mismo tienen baja población económicamente activa y bajo número de empleados. Esto conlleva que el total de establecimientos también sea bajo. Lo único favorable de este grupo es que hay ciertas regiones con altos salarios, pero este grupo dado sus características se convierte en la opción menos deseable para iniciar un negocio.",linebreaks(2),
                     "Grupo 1(Color amarillo): está conformado por 82 municipios con población total, ingreso laboral, población económicamente activa, número de ocupados y total de establecimientos en rangos promedios. Es probable que se exijan alimentos baratos o con precios promedio, y su número de establecimientos también indica que existe mayor competencia culinaria.",linebreaks(2),
@@ -270,7 +275,7 @@ server <- function(input, output) {
     
     #pal <- colorNumeric("viridis", NULL)
     
-    leaflet(mapamexico) %>%
+    leaflet(mapamexico[!is.na(mapamexico$ent) & mapamexico$ent == input$opt_ent, ]) %>%
       addTiles() %>%
       addPolygons(stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1, color = ~factpal(label),
                   label = ~paste0(NOM_MUN, ": ", formatC(pobtot, big.mark = ",")))
