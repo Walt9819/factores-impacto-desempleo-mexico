@@ -140,7 +140,7 @@ server <- function(input, output) {
   #===============================Outputs=========================
   
   output$frame <- renderUI({
-    my_test <- tags$iframe(src="http://tdayismybday.herokuapp.com/bedu/test", height=700, width="100%", frameborder = "no")
+    my_test <- tags$iframe(src="https://tdayismybday.herokuapp.com/bedu/test", height=700, width="100%", frameborder = "no")
     my_test
   })
   
