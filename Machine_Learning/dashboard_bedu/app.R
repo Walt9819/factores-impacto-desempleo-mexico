@@ -10,6 +10,8 @@ library(ggplot2)
 library(plotly)
 library(leaflet)
 library(rgdal)
+library(htmltools)
+library(reactR)
 
 #setwd("C:/Users/BALAMLAPTOP2/Documents/GitHub/factores-impacto-desempleo-mexico/Machine_Learning/dashboard_bedu")
 mexico <- rgdal::readOGR("data/mun2019gw.shp")
@@ -112,7 +114,7 @@ ui <- fluidPage(
         #===============================tabItem===============================
         tabItem(tabName = "pruebas",
                 fluidRow(
-                  
+                  htmlOutput("frame")
                 )
         )
         
@@ -136,6 +138,11 @@ server <- function(input, output) {
   df
   
   #===============================Outputs=========================
+  
+  output$frame <- renderUI({
+    my_test <- tags$iframe(src="http://tdayismybday.herokuapp.com/bedu/test", height=700, width="100%", frameborder = "no")
+    my_test
+  })
   
   output$data_table <- renderDataTable(data,options = list(lengthMenu = c(5,10,15),pageLength = 5))
   
