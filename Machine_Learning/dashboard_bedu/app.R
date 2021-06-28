@@ -41,7 +41,7 @@ ui <- fluidPage(
       
       sidebarMenu(
         menuItem("Inicio", tabName = "insights", icon = icon("area-chart")),
-        menuItem("Pruebas", tabName = "pruebas", icon = icon("area-chart"))
+        menuItem("Calculadora de éxito", tabName = "pruebas", icon = icon("area-chart"))
       )
       
     ),
