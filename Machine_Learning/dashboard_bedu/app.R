@@ -97,12 +97,11 @@ ui <- fluidPage(
                 ),
                 fluidRow(
                   box(
-                    title = "Municipios",
+                    titlePanel(h3("Municipios")),
                     selectInput(inputId = "opt_ent",label = "Seleccionar Opción",choices = cat_ent, selected = "9"),
                     "Visualización del mapa estatico.", linebreaks(2),
-                    "Grupo 0(Color rojo): el número de municipios contenidos corresponde a 2,357, los cuales presentan un bajo número del total de población, por lo mismo tienen baja población económicamente activa y bajo número de empleados. Esto conlleva que el total de establecimientos también sea bajo. Lo único favorable de este grupo es que hay ciertas regiones con altos salarios, pero este grupo dado sus características se convierte en la opción menos deseable para iniciar un negocio.",linebreaks(2),
-                    "Grupo 1(Color amarillo): está conformado por 82 municipios con población total, ingreso laboral, población económicamente activa, número de ocupados y total de establecimientos en rangos promedios. Es probable que se exijan alimentos baratos o con precios promedio, y su número de establecimientos también indica que existe mayor competencia culinaria.",linebreaks(2),
-                    "Grupo 2(No representados): están agrupados 24 municipios con altos valores en todos sus indicadores sociodemográficos, excluyendo únicamente el ingreso laboral debido a el salario de estas regiones son promedio. Aunque por la gran afluencia de la zona y el número de personas económicamente activas se puede determinar que estos municipios representan las mejores opciones para iniciar un negocio, lo único en contra es la cantidad de establecimientos que representan una competencia.",linebreaks(2),
+                    "Grupo 0(Color rojo): Conformado por 2,423 municipios.",linebreaks(2),
+                    "Grupo 1(Color amarillo): Conformado por 55 municipios.",linebreaks(2),
                     status = "primary",
                     leafletOutput("mapMexico"),
                     #height = 700,
